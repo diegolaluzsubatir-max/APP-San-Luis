@@ -3,6 +3,7 @@ import Link from "next/link";
 
 export default async function EntrenamientosPage() {
   const hoy  = new Date();
+hoy.setHours(0, 0, 0, 0);
   const todos = await prisma.entrenamiento.findMany({
     orderBy: { fecha: "desc" },
     include: { asistencias: true },
