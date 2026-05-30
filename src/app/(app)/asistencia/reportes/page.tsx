@@ -143,7 +143,7 @@ export default async function ReportesAsistenciaPage() {
                   {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}°`}
                 </span>
                 <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: "#f1f5f9" }}>
-                  {j.nombre} {j.apellido.split(" ")[0]}
+                  {j.nombre} {j.apellido}
                 </span>
                 <span style={{ fontSize: 15, fontWeight: 900, color }}>{pctMes}%</span>
               </div>
