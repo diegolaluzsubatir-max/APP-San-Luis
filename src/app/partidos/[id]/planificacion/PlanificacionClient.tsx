@@ -88,6 +88,32 @@ function fmtFecha(d: string): string {
   });
 }
 
+function emparejarCambios(salen: Jugador[], entran: Jugador[]): {
+  pares: { sale: Jugador; entra: Jugador }[];
+  soloSalen: Jugador[];
+  soloEntran: Jugador[];
+} {
+  const salenMut  = [...salen];
+  const entranMut = [...entran];
+  const pares: { sale: Jugador; entra: Jugador }[] = [];
+
+  // Primero emparejar por misma posición
+  for (const s of [...salenMut]) {
+    const idx = entranMut.findIndex(e => getPosKey(e.posicion) === getPosKey(s.posicion));
+    if (idx !== -1) {
+      pares.push({ sale: s, entra: entranMut[idx] });
+      salenMut.splice(salenMut.indexOf(s), 1);
+      entranMut.splice(idx, 1);
+    }
+  }
+
+  // Emparejar restantes por orden
+  while (salenMut.length > 0 && entranMut.length > 0)
+    pares.push({ sale: salenMut.shift()!, entra: entranMut.shift()! });
+
+  return { pares, soloSalen: salenMut, soloEntran: entranMut };
+}
+
 // ── QuarterSection ─────────────────────────────────────────────────────────────
 
 interface QSProps {
@@ -693,6 +719,15 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
           {resumenCambios.map(({ de, a, salen, entran }) => {
             const hayNovedad = salen.length > 0 || entran.length > 0;
             const colorQ = Q_COLORS[a];
+
+            const salenJugs  = salen.map(id => jugadoresFichados.find(x => x.id === id)).filter(Boolean) as Jugador[];
+            const entranJugs = entran.map(id => jugadoresFichados.find(x => x.id === id)).filter(Boolean) as Jugador[];
+            const { pares, soloSalen, soloEntran } = emparejarCambios(salenJugs, entranJugs);
+
+            function jLabel(j: Jugador) {
+              return `${j.nombre} ${j.apellido}${j.numero_camiseta != null ? ` (#${j.numero_camiseta})` : ""}`;
+            }
+
             return (
               <div key={de} style={{
                 display: "flex", gap: 10, alignItems: "flex-start",
@@ -711,50 +746,65 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
                   Q{a}
                 </div>
 
-                {/* Cambios */}
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 5, paddingTop: 2 }}>
+                {/* Cambios emparejados */}
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6, paddingTop: 2 }}>
                   {!hayNovedad ? (
                     <span style={{ fontSize: 12, color: "rgba(241,245,249,0.25)", fontStyle: "italic" }}>
                       Sin cambios
                     </span>
                   ) : (
                     <>
-                      {entran.length > 0 && (
-                        <div style={{ display: "flex", gap: 6, alignItems: "flex-start", flexWrap: "wrap" }}>
+                      {pares.map((par, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
                           <span style={{
-                            flexShrink: 0, fontSize: 9, fontWeight: 800, padding: "2px 6px",
-                            borderRadius: 4, letterSpacing: "0.04em", textTransform: "uppercase",
-                            background: "rgba(16,185,129,0.15)", color: "#10B981",
-                            border: "1px solid rgba(16,185,129,0.3)",
-                          }}>
-                            ↑ ENTRA
-                          </span>
-                          <span style={{ fontSize: 12, color: "#10B981", fontWeight: 600, lineHeight: 1.4 }}>
-                            {entran.map(id => {
-                              const j = jugadoresFichados.find(x => x.id === id);
-                              return j ? `${j.nombre} ${j.apellido}${j.numero_camiseta != null ? ` (#${j.numero_camiseta})` : ""}` : "";
-                            }).filter(Boolean).join(", ")}
-                          </span>
-                        </div>
-                      )}
-                      {salen.length > 0 && (
-                        <div style={{ display: "flex", gap: 6, alignItems: "flex-start", flexWrap: "wrap" }}>
-                          <span style={{
-                            flexShrink: 0, fontSize: 9, fontWeight: 800, padding: "2px 6px",
-                            borderRadius: 4, letterSpacing: "0.04em", textTransform: "uppercase",
+                            fontSize: 9, fontWeight: 800, padding: "2px 5px", borderRadius: 4,
+                            letterSpacing: "0.04em", textTransform: "uppercase", flexShrink: 0,
                             background: "rgba(239,68,68,0.15)", color: "#EF4444",
                             border: "1px solid rgba(239,68,68,0.3)",
-                          }}>
-                            ↓ SALE
+                          }}>SALE</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "#EF4444" }}>
+                            {jLabel(par.sale)}
                           </span>
-                          <span style={{ fontSize: 12, color: "#EF4444", fontWeight: 600, lineHeight: 1.4 }}>
-                            {salen.map(id => {
-                              const j = jugadoresFichados.find(x => x.id === id);
-                              return j ? `${j.nombre} ${j.apellido}${j.numero_camiseta != null ? ` (#${j.numero_camiseta})` : ""}` : "";
-                            }).filter(Boolean).join(", ")}
+                          <span style={{ fontSize: 14, color: "rgba(241,245,249,0.3)", flexShrink: 0 }}>→</span>
+                          <span style={{
+                            fontSize: 9, fontWeight: 800, padding: "2px 5px", borderRadius: 4,
+                            letterSpacing: "0.04em", textTransform: "uppercase", flexShrink: 0,
+                            background: "rgba(16,185,129,0.15)", color: "#10B981",
+                            border: "1px solid rgba(16,185,129,0.3)",
+                          }}>ENTRA</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "#10B981" }}>
+                            {jLabel(par.entra)}
                           </span>
                         </div>
-                      )}
+                      ))}
+                      {soloSalen.map((j, i) => (
+                        <div key={`ss-${i}`} style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
+                          <span style={{
+                            fontSize: 9, fontWeight: 800, padding: "2px 5px", borderRadius: 4,
+                            letterSpacing: "0.04em", textTransform: "uppercase", flexShrink: 0,
+                            background: "rgba(239,68,68,0.15)", color: "#EF4444",
+                            border: "1px solid rgba(239,68,68,0.3)",
+                          }}>SALE</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "#EF4444" }}>{jLabel(j)}</span>
+                          <span style={{ fontSize: 11, color: "rgba(241,245,249,0.3)", fontStyle: "italic" }}>
+                            (sin reemplazo directo)
+                          </span>
+                        </div>
+                      ))}
+                      {soloEntran.map((j, i) => (
+                        <div key={`se-${i}`} style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
+                          <span style={{
+                            fontSize: 9, fontWeight: 800, padding: "2px 5px", borderRadius: 4,
+                            letterSpacing: "0.04em", textTransform: "uppercase", flexShrink: 0,
+                            background: "rgba(16,185,129,0.15)", color: "#10B981",
+                            border: "1px solid rgba(16,185,129,0.3)",
+                          }}>ENTRA</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "#10B981" }}>{jLabel(j)}</span>
+                          <span style={{ fontSize: 11, color: "rgba(241,245,249,0.3)", fontStyle: "italic" }}>
+                            (sin reemplazo directo)
+                          </span>
+                        </div>
+                      ))}
                     </>
                   )}
                 </div>
