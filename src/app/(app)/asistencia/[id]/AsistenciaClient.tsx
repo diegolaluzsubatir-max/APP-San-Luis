@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type EstadoAsistencia = "presente" | "tardanza" | "ausente" | "justificado";
 
@@ -21,6 +22,7 @@ const BTNS = [
 ];
 
 export default function AsistenciaClient({ entrenamientoId, jugadores, registrosIniciales, totalJugadores }: Props) {
+  const router = useRouter();
   const [registros, setRegistros] = useState<Record<number, { estado: EstadoAsistencia; obs: string }>>(
     () => Object.fromEntries(registrosIniciales.map((r) => [r.jugadorId, { estado: r.estado, obs: r.observaciones }]))
   );
@@ -54,7 +56,7 @@ export default function AsistenciaClient({ entrenamientoId, jugadores, registros
         body:    JSON.stringify({ registros: data }),
       });
       if (!res.ok) throw new Error();
-      setMsg({ ok: true, text: "Asistencia guardada correctamente" });
+      router.push("/entrenamientos");
     } catch {
       setMsg({ ok: false, text: "Error al guardar. Intentá de nuevo." });
     } finally {
