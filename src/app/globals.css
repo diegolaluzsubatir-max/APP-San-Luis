@@ -1,0 +1,212 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Montserrat', sans-serif;
+}
+
+/* ── CSS Variables ────────────────────────────────────────────────────────── */
+:root {
+  --bg-base:        #0a0f1e;
+  --bg-card:        #111827;
+  --bg-card-2:      #1a2235;
+  --border:         #1e2d4a;
+  --border-bright:  #2a4070;
+  --text-primary:   #f1f5f9;
+  --text-secondary: rgba(241,245,249,0.65);
+  --text-muted:     rgba(241,245,249,0.38);
+  --gold:           #F59E0B;
+  --blue-elec:      #0EA5E9;
+  --green-neon:     #10B981;
+  --red-neon:       #EF4444;
+  --yellow-neon:    #F59E0B;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+body {
+  background-image: url('/fondo.png');
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  color: var(--text-primary);
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* ── Sidebar nav items (desktop) ──────────────────────────────────────────── */
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-left: 3px solid transparent;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  text-decoration: none;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.sidebar-nav-item:hover {
+  color: var(--blue-elec);
+  background: rgba(14,165,233,0.07);
+  border-left-color: var(--blue-elec);
+}
+.sidebar-nav-item.active {
+  color: var(--blue-elec);
+  background: rgba(14,165,233,0.10);
+  border-left-color: var(--blue-elec);
+  font-weight: 700;
+}
+
+/* ── Glass / dark card ────────────────────────────────────────────────────── */
+.glass-card {
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+/* ── Stat card ────────────────────────────────────────────────────────────── */
+.stat-card {
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top left, rgba(14,165,233,0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* ── FIFA card ────────────────────────────────────────────────────────────── */
+.fifa-card {
+  display: block;
+  transition: transform 0.25s ease, filter 0.25s ease;
+  text-decoration: none;
+}
+.fifa-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  filter: drop-shadow(0 10px 28px rgba(14,165,233,0.55));
+}
+.card-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 25%, rgba(255,255,255,0.38) 50%, transparent 75%);
+  opacity: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 10;
+}
+.fifa-card:hover .card-shine {
+  animation: card-hover-shine 0.55s ease-in-out forwards;
+}
+@keyframes card-hover-shine {
+  0%   { opacity: 0; transform: translateX(-100%) skewX(-15deg); }
+  25%  { opacity: 1; }
+  75%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(150%) skewX(-15deg); }
+}
+
+/* ── Shine animations ─────────────────────────────────────────────────────── */
+@keyframes shineFifa {
+  0%   { left: -100%; opacity: 0; }
+  10%  { opacity: 1; }
+  50%  { left: 140%; opacity: 1; }
+  60%  { opacity: 0; }
+  100% { left: 140%; opacity: 0; }
+}
+
+@keyframes escudo-shine {
+  0%, 100% { transform: translateX(-130%) skewX(-20deg); opacity: 0; }
+  3%  { opacity: 1;  transform: translateX(-130%) skewX(-20deg); }
+  22% { opacity: 1;  transform: translateX( 230%) skewX(-20deg); }
+  23% { opacity: 0;  transform: translateX( 230%) skewX(-20deg); }
+}
+
+/* ── Dark form ────────────────────────────────────────────────────────────── */
+.form-dark {
+  background: rgba(17, 24, 39, 0.95);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 20px;
+  color: white;
+}
+.form-dark label {
+  display: block;
+  color: rgba(255,255,255,0.7);
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.form-dark input,
+.form-dark select,
+.form-dark textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 12px;
+  color: white;
+  font-size: 16px; /* ≥16px evita zoom automático en iOS */
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.form-dark input::placeholder,
+.form-dark textarea::placeholder {
+  color: rgba(255,255,255,0.3);
+}
+.form-dark input:focus,
+.form-dark select:focus,
+.form-dark textarea:focus {
+  border-color: #0EA5E9;
+  background: rgba(255,255,255,0.12);
+}
+.form-dark select option {
+  background: #111827;
+  color: white;
+}
+.form-dark .form-block {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 12px;
+}
+.form-dark .form-block input {
+  background: rgba(255,255,255,0.06);
+  padding: 6px 10px;
+  font-size: 16px; /* ≥16px evita zoom automático en iOS */
+}
+
+/* ── Dark section card (reusable) ─────────────────────────────────────────── */
+.dark-section {
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+/* ── Print ────────────────────────────────────────────────────────────────── */
+@media print {
+  @page { size: A4 landscape; margin: 1.5cm; }
+  body  { background: white; color: #1a1a1a; font-size: 11pt; }
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }

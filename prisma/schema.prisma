@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Jugador {
+  id               Int       @id @default(autoincrement())
+  numero_camiseta  Int?
+  nombre           String
+  apellido         String
+  cedula           String?
+  ci_vencimiento   DateTime?
+  fecha_nacimiento DateTime?
+  fichado          Boolean   @default(false)
+  posicion         String?
+  pierna_habil     String?
+  estado           String    @default("activo")
+  madre_nombre     String?
+  madre_telefono   String?
+  padre_nombre     String?
+  padre_telefono   String?
+  contacto_email   String?
+  direccion        String?
+  tutor_nombre     String?
+  tutor_telefono   String?
+  tutor_relacion   String?
+  foto_url         String?
+  obs_generales    String?
+  mutualista       String?
+  alergias         String?
+  medicacion       String?
+  obs_medicas      String?
+  ficha_medica_vence DateTime?
+  autorizacion     Boolean   @default(false)
+  participaciones  ParticipacionPartido[]
+  asistencias      AsistenciaEntrenamiento[]
+  evaluaciones     Evaluacion[]
+}
+
+model Partido {
+  id            Int       @id @default(autoincrement())
+  fecha         DateTime
+  rival         String
+  rivalId       Int?
+  rivalData     Rival?    @relation(fields: [rivalId], references: [id])
+  lugar         String?
+  condicion     String
+  campeonato    String?
+  duracion      Int       @default(50)
+  goles_local   Int?
+  goles_visita  Int?
+  estado        String    @default("pendiente")
+  notas         String?
+  planificacion ParticipacionPartido[]
+}
+
+model Rival {
+  id       Int       @id @default(autoincrement())
+  nombre   String
+  escudo   String?
+  partidos Partido[]
+}
+
+model ParticipacionPartido {
+  id               Int     @id @default(autoincrement())
+  partido          Partido @relation(fields: [partidoId], references: [id])
+  partidoId        Int
+  jugador          Jugador @relation(fields: [jugadorId], references: [id])
+  jugadorId        Int
+  cuartos          String  @default("[]")
+  minutos          Float   @default(0)
+  titular          Boolean @default(true)
+  goles            Int     @default(0)
+  asistencias_stat Int     @default(0)
+  observaciones    String?
+}
+
+model Entrenamiento {
+  id                 Int       @id @default(autoincrement())
+  fecha              DateTime
+  hora_inicio        String
+  hora_fin           String
+  lugar              String    @default("Cancha San Luis")
+  entrenador         String    @default("Ernesto")
+  objetivo           String?
+  bloques            String?
+  materiales         String?
+  observaciones      String?
+  suspendido         Boolean   @default(false)
+  motivo_suspension  String?
+  estado             String    @default("planificado")
+  asistencias        AsistenciaEntrenamiento[]
+}
+
+model AsistenciaEntrenamiento {
+  id              Int           @id @default(autoincrement())
+  entrenamiento   Entrenamiento @relation(fields: [entrenamientoId], references: [id])
+  entrenamientoId Int
+  jugador         Jugador       @relation(fields: [jugadorId], references: [id])
+  jugadorId       Int
+  estado          String        @default("ausente")
+  observaciones   String?
+}
+
+model Evaluacion {
+  id                  Int      @id @default(autoincrement())
+  jugador             Jugador  @relation(fields: [jugadorId], references: [id])
+  jugadorId           Int
+  fecha               DateTime
+  conducta            Int      @default(3)
+  compromiso          Int      @default(3)
+  respeto             Int      @default(3)
+  companerismo        Int      @default(3)
+  control_balon       Int      @default(3)
+  pase                Int      @default(3)
+  recepcion           Int      @default(3)
+  definicion          Int      @default(3)
+  comprension_tactica Int      @default(3)
+  velocidad           Int      @default(3)
+  coordinacion        Int      @default(3)
+  observaciones       String?
+}
+
+model Nota {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  contenido   String
+  estado      String   @default("pendiente")
+  prioridad   String   @default("normal")
+  creado_en   DateTime @default(now())
+  actualizado DateTime @updatedAt
+}
