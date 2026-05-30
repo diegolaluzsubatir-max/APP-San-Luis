@@ -9,7 +9,7 @@ export default async function PartidosPage() {
   });
 
   const pendientes = partidos.filter((p) => p.estado === "pendiente");
-  const jugados    = partidos.filter((p) => p.estado === "jugado");
+  const jugados    = partidos.filter((p) => p.estado === "jugado" || p.estado === "finalizado");
 
   return (
     <div className="space-y-5 max-w-xl">
@@ -71,7 +71,7 @@ function PartidosList({ title, partidos }: {
         borderRadius: 14, overflow: "hidden",
       }}>
         {partidos.map((p, i) => {
-          const r = p.estado === "jugado" ? resultadoPartido(p) : null;
+          const r = (p.estado === "jugado" || p.estado === "finalizado") ? resultadoPartido(p) : null;
           const esPendiente = p.estado === "pendiente";
 
           const resultConfig = r === "V"

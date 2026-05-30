@@ -78,14 +78,14 @@ export default async function InformeMensualPage() {
               </thead>
               <tbody>
                 {partidos.map((p) => {
-                  const r = p.estado === "jugado" ? resultadoPartido(p) : null;
+                  const r = (p.estado === "jugado" || p.estado === "finalizado") ? resultadoPartido(p) : null;
                   return (
                     <tr key={p.id} className="border-b border-gray-50">
                       <td className="py-1.5">{fmtFecha(p.fecha)}</td>
                       <td className="py-1.5 font-medium">vs {p.rival}</td>
                       <td className="py-1.5 text-center">{p.condicion === "local" ? "Local" : "Visitante"}</td>
                       <td className="py-1.5 text-center">
-                        {p.estado === "jugado" && p.goles_local !== null
+                        {(p.estado === "jugado" || p.estado === "finalizado") && p.goles_local !== null
                           ? `${p.condicion === "local" ? p.goles_local : p.goles_visita}–${p.condicion === "local" ? p.goles_visita : p.goles_local} (${r})`
                           : "Pendiente"}
                       </td>

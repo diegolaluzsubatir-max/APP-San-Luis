@@ -30,7 +30,7 @@ export default async function DashboardPage() {
     prisma.jugador.count({ where: { fichado: true } }),
     prisma.entrenamiento.findFirst({ where: { fecha: { gte: hoy } }, orderBy: { fecha: "asc" } }),
     prisma.partido.findFirst({ where: { fecha: { gte: hoy }, estado: "pendiente" }, orderBy: { fecha: "asc" } }),
-    prisma.partido.findMany({ where: { estado: "jugado" } }),
+    prisma.partido.findMany({ where: { estado: { in: ["jugado", "finalizado"] } } }),
     prisma.asistenciaEntrenamiento.findMany({ select: { estado: true } }),
     prisma.entrenamiento.count({ where: { fecha: { gte: inicioMes, lte: finMes } } }),
     prisma.jugador.findMany({

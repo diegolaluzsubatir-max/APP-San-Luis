@@ -23,7 +23,7 @@ export default async function PartidoDetallePage({ params }: Props) {
   });
   if (!partido) notFound();
 
-  const r = partido.estado === "jugado" ? resultadoPartido(partido) : null;
+  const r = (partido.estado === "jugado" || partido.estado === "finalizado") ? resultadoPartido(partido) : null;
 
   return (
     <div className="max-w-2xl space-y-4">
@@ -75,7 +75,7 @@ export default async function PartidoDetallePage({ params }: Props) {
       </div>
 
       {/* Registrar resultado */}
-      {partido.estado !== "jugado" && (
+      {partido.estado !== "jugado" && partido.estado !== "finalizado" && (
         <ResultadoClient
           partidoId={partido.id}
           condicion={partido.condicion}
