@@ -84,7 +84,8 @@ export default function NuevoEntrenamientoClient() {
       setGuardando(false);
       return;
     }
-    router.push("/entrenamientos");
+    router.refresh();
+router.push("/entrenamientos");
   }
 
   return (
