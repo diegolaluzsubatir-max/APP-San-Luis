@@ -25,8 +25,6 @@ const Q_NAMES  = ["", "1° Cuarto", "2° Cuarto", "3° Cuarto", "4° Cuarto"];
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-// ── Ordenamiento por posición ──────────────────────────────────────────────────
-
 function posLabel(pos: string | null): string {
   const k = getPosKey(pos);
   return k === "arquero" ? "ARQ" : k === "defensa" ? "DEF" : k === "medio" ? "MED" : k === "delantero" ? "DEL" : "";
@@ -55,8 +53,6 @@ function sortByPos(arr: Jugador[]): Jugador[] {
     return (a.numero_camiseta ?? 99) - (b.numero_camiseta ?? 99);
   });
 }
-
-// ── Build helpers ──────────────────────────────────────────────────────────────
 
 function buildAsignaciones(plan: Participacion[]): Record<number, number[]> {
   const map: Record<number, number[]> = {};
@@ -111,7 +107,6 @@ function QuarterSection({ q, cols, jugadores, minPorQStr, onToggle }: QSProps) {
 
   return (
     <div style={{ border: `1px solid ${color}40`, borderRadius: 12, overflow: "hidden" }}>
-      {/* Header del cuarto */}
       <div style={{
         background: `${color}16`, borderBottom: `1px solid ${color}35`,
         padding: "9px 14px",
@@ -130,7 +125,6 @@ function QuarterSection({ q, cols, jugadores, minPorQStr, onToggle }: QSProps) {
         </span>
       </div>
 
-      {/* Titulares */}
       <div style={{ background: "rgba(17,24,39,0.7)" }}>
         <div style={{
           padding: "5px 14px 3px",
@@ -171,7 +165,6 @@ function QuarterSection({ q, cols, jugadores, minPorQStr, onToggle }: QSProps) {
         ))}
       </div>
 
-      {/* Suplentes */}
       <div style={{ borderTop: `1px solid ${color}20`, background: "rgba(0,0,0,0.25)" }}>
         <div style={{
           padding: "5px 14px 3px",
@@ -226,11 +219,20 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
   const [guardando, setGuardando] = useState(false);
   const [msg, setMsg]             = useState<{ ok: boolean; text: string } | null>(null);
   const [activeQ, setActiveQ]     = useState(1);
+  const [ausentes, setAusentes]   = useState<Set<number>>(new Set());
 
   const DURACION   = 50;
   const cols       = buildCols(asignaciones);
-  const minPorQ    = DURACION / 4; // 12.5
+  const minPorQ    = DURACION / 4;
   const minPorQStr = fmtMin(minPorQ);
+
+  const jugadoresActivos = jugadoresFichados.filter(j => !ausentes.has(j.id));
+
+  const resumenCambios = [1, 2, 3].map(q => ({
+    de: q, a: q + 1,
+    salen:  cols[q].filter(id => !cols[q + 1].includes(id)),
+    entran: cols[q + 1].filter(id => !cols[q].includes(id)),
+  }));
 
   function toggleCuarto(jugadorId: number, cuarto: number) {
     setAsignaciones((prev) => {
@@ -241,6 +243,15 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
         : [...cur, cuarto].sort();
       return next;
     });
+  }
+
+  function toggleAusente(jugadorId: number) {
+    if (ausentes.has(jugadorId)) {
+      setAusentes(prev => { const s = new Set(prev); s.delete(jugadorId); return s; });
+    } else {
+      setAusentes(prev => { const s = new Set(prev); s.add(jugadorId); return s; });
+      setAsignaciones(prev => ({ ...prev, [jugadorId]: [] }));
+    }
   }
 
   function printOficial() {
@@ -254,7 +265,7 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
   }
 
   function regenerar() {
-    setAsignaciones(distribuir(sortByPos(jugadoresFichados).map((j) => j.id)));
+    setAsignaciones(distribuir(sortByPos(jugadoresActivos).map((j) => j.id)));
     setMsg(null);
   }
 
@@ -410,10 +421,8 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
         {/* ── PLANILLA OFICIAL (solo visible al imprimir con body.print-official) ── */}
         <div className="print-planilla" style={{ display: "none" }}>
 
-          {/* Franja azul */}
           <div className="plan-stripe" />
 
-          {/* Encabezado oficial */}
           <div className="plan-header">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/Escudo.png" alt="" style={{ width: 52, height: 52, objectFit: "contain", flexShrink: 0 }} />
@@ -431,7 +440,6 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
             </div>
           </div>
 
-          {/* Datos del partido */}
           <div className="plan-info">
             <p className="plan-info-title">
               San Luis vs {partido.rival}
@@ -446,11 +454,10 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
             </p>
           </div>
 
-          {/* Cuartos 2×2 */}
           <div className="plan-quarters">
             {[1, 2, 3, 4].map((q) => {
               const tIds  = cols[q];
-              const tJugs = sortByPos(jugadoresFichados.filter((x) => tIds.includes(x.id)));
+              const tJugs = sortByPos(jugadoresActivos.filter((x) => tIds.includes(x.id)));
               return (
                 <div key={q} className="plan-q">
                   <div className="plan-q-head">
@@ -477,7 +484,6 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
             })}
           </div>
 
-          {/* Distribución de minutos */}
           <p className="plan-min-title">Distribución de minutos</p>
           <table className="plan-table">
             <thead>
@@ -493,7 +499,7 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
               </tr>
             </thead>
             <tbody>
-              {sortByPos(jugadoresFichados).map((j, idx) => {
+              {sortByPos(jugadoresActivos).map((j) => {
                 const cuartos = asignaciones[j.id] ?? [];
                 const min     = cuartos.length * minPorQ;
                 const pct     = Math.round((cuartos.length / 4) * 100);
@@ -514,7 +520,6 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
             </tbody>
           </table>
 
-          {/* Pie de página */}
           <div className="plan-footer">
             <div className="plan-footer-dt">
               <p style={{ margin: 0, fontWeight: 700, fontSize: 11 }}>Director Técnico: Ernesto Fontes</p>
@@ -534,7 +539,89 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
 
         </div>{/* fin .print-planilla */}
 
-        {/* Print: partido info integrado en el header de arriba */}
+        {/* ── ¿Quién no viene hoy? ─────────────────────────────────── */}
+        <div className="no-print" style={{
+          background: "rgba(17,24,39,0.90)", backdropFilter: "blur(10px)",
+          border: "1px solid #1e2d4a", borderRadius: 14,
+          overflow: "hidden", marginBottom: 12,
+        }}>
+          <div style={{
+            padding: "10px 16px",
+            borderBottom: "1px solid #1e2d4a",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+          }}>
+            <span style={{
+              fontSize: 11, fontWeight: 800, letterSpacing: "1px",
+              textTransform: "uppercase", color: "rgba(241,245,249,0.5)",
+            }}>
+              ¿Quién no viene hoy?
+            </span>
+            {ausentes.size > 0 && (
+              <span style={{
+                fontSize: 11, fontWeight: 700,
+                color: "#EF4444",
+                background: "rgba(239,68,68,0.12)",
+                border: "1px solid rgba(239,68,68,0.3)",
+                borderRadius: 6, padding: "2px 8px",
+              }}>
+                {ausentes.size} ausente{ausentes.size !== 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "10px 14px" }}>
+            {sortByPos(jugadoresFichados).map(j => {
+              const esAusente = ausentes.has(j.id);
+              return (
+                <button
+                  key={j.id}
+                  onClick={() => toggleAusente(j.id)}
+                  className="btn-touch"
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    padding: "6px 10px", borderRadius: 8, border: "none", cursor: "pointer",
+                    background: esAusente ? "rgba(239,68,68,0.12)" : "rgba(255,255,255,0.05)",
+                    outline: esAusente
+                      ? "1px solid rgba(239,68,68,0.35)"
+                      : "1px solid rgba(255,255,255,0.08)",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  <span style={{
+                    fontSize: 12, fontWeight: 900,
+                    color: esAusente ? "#EF4444" : "#0EA5E9",
+                  }}>
+                    {j.numero_camiseta ?? "—"}
+                  </span>
+                  <span style={{
+                    fontSize: 12, fontWeight: 600,
+                    color: esAusente ? "#EF4444" : "rgba(241,245,249,0.65)",
+                    textDecoration: esAusente ? "line-through" : "none",
+                  }}>
+                    {j.nombre} {j.apellido}
+                  </span>
+                  {esAusente && (
+                    <span style={{
+                      fontSize: 9, fontWeight: 800, padding: "1px 5px",
+                      borderRadius: 4, letterSpacing: "0.04em",
+                      background: "rgba(239,68,68,0.2)", color: "#EF4444",
+                      border: "1px solid rgba(239,68,68,0.3)",
+                    }}>
+                      AUSENTE
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {ausentes.size > 0 && (
+            <p style={{
+              padding: "0 14px 10px",
+              fontSize: 10, color: "rgba(241,245,249,0.3)",
+            }}>
+              Tocá el jugador de nuevo para revertir si aparece a último momento.
+            </p>
+          )}
+        </div>
 
         {/* ── Mobile: tab selector ─────────────────────────────────── */}
         <div className="lg:hidden no-print" style={{ display: "flex", gap: 6, marginBottom: 10 }}>
@@ -569,7 +656,7 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
         <div className="lg:hidden no-print" style={{ marginBottom: 14 }}>
           <QuarterSection
             q={activeQ} cols={cols}
-            jugadores={jugadoresFichados}
+            jugadores={jugadoresActivos}
             minPorQStr={minPorQStr}
             onToggle={toggleCuarto}
           />
@@ -583,11 +670,97 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
           {[1, 2, 3, 4].map((q) => (
             <QuarterSection
               key={q} q={q} cols={cols}
-              jugadores={jugadoresFichados}
+              jugadores={jugadoresActivos}
               minPorQStr={minPorQStr}
               onToggle={toggleCuarto}
             />
           ))}
+        </div>
+
+        {/* ── Resumen de cambios ───────────────────────────────────── */}
+        <div className="no-print" style={{
+          background: "rgba(17,24,39,0.90)", border: "1px solid #1e2d4a",
+          borderRadius: 14, overflow: "hidden", marginBottom: 12,
+        }}>
+          <div style={{
+            padding: "10px 16px 6px",
+            fontSize: 10, fontWeight: 800, color: "rgba(241,245,249,0.45)",
+            letterSpacing: "0.14em", textTransform: "uppercase",
+          }}>
+            Cambios entre cuartos
+          </div>
+
+          {resumenCambios.map(({ de, a, salen, entran }) => {
+            const hayNovedad = salen.length > 0 || entran.length > 0;
+            const colorQ = Q_COLORS[a];
+            return (
+              <div key={de} style={{
+                display: "flex", gap: 10, alignItems: "flex-start",
+                padding: "10px 16px",
+                borderTop: "1px solid rgba(255,255,255,0.04)",
+              }}>
+                {/* Badge Q→Q */}
+                <div style={{
+                  flexShrink: 0, minWidth: 52, textAlign: "center",
+                  fontSize: 11, fontWeight: 900, color: colorQ,
+                  background: `${colorQ}15`, border: `1px solid ${colorQ}35`,
+                  borderRadius: 7, padding: "4px 6px", lineHeight: 1.3,
+                }}>
+                  Q{de}<br />
+                  <span style={{ fontSize: 9, opacity: 0.7 }}>↓</span><br />
+                  Q{a}
+                </div>
+
+                {/* Cambios */}
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 5, paddingTop: 2 }}>
+                  {!hayNovedad ? (
+                    <span style={{ fontSize: 12, color: "rgba(241,245,249,0.25)", fontStyle: "italic" }}>
+                      Sin cambios
+                    </span>
+                  ) : (
+                    <>
+                      {entran.length > 0 && (
+                        <div style={{ display: "flex", gap: 6, alignItems: "flex-start", flexWrap: "wrap" }}>
+                          <span style={{
+                            flexShrink: 0, fontSize: 9, fontWeight: 800, padding: "2px 6px",
+                            borderRadius: 4, letterSpacing: "0.04em", textTransform: "uppercase",
+                            background: "rgba(16,185,129,0.15)", color: "#10B981",
+                            border: "1px solid rgba(16,185,129,0.3)",
+                          }}>
+                            ↑ ENTRA
+                          </span>
+                          <span style={{ fontSize: 12, color: "#10B981", fontWeight: 600, lineHeight: 1.4 }}>
+                            {entran.map(id => {
+                              const j = jugadoresFichados.find(x => x.id === id);
+                              return j ? `${j.nombre} ${j.apellido}${j.numero_camiseta != null ? ` (#${j.numero_camiseta})` : ""}` : "";
+                            }).filter(Boolean).join(", ")}
+                          </span>
+                        </div>
+                      )}
+                      {salen.length > 0 && (
+                        <div style={{ display: "flex", gap: 6, alignItems: "flex-start", flexWrap: "wrap" }}>
+                          <span style={{
+                            flexShrink: 0, fontSize: 9, fontWeight: 800, padding: "2px 6px",
+                            borderRadius: 4, letterSpacing: "0.04em", textTransform: "uppercase",
+                            background: "rgba(239,68,68,0.15)", color: "#EF4444",
+                            border: "1px solid rgba(239,68,68,0.3)",
+                          }}>
+                            ↓ SALE
+                          </span>
+                          <span style={{ fontSize: 12, color: "#EF4444", fontWeight: 600, lineHeight: 1.4 }}>
+                            {salen.map(id => {
+                              const j = jugadoresFichados.find(x => x.id === id);
+                              return j ? `${j.nombre} ${j.apellido}${j.numero_camiseta != null ? ` (#${j.numero_camiseta})` : ""}` : "";
+                            }).filter(Boolean).join(", ")}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* ── Distribución de minutos ──────────────────────────────── */}
@@ -603,7 +776,7 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
             Distribución de minutos
           </div>
 
-          {sortByPos(jugadoresFichados).map((j, i) => {
+          {sortByPos(jugadoresActivos).map((j) => {
             const cuartos = asignaciones[j.id] ?? [];
             const minutos = cuartos.length * minPorQ;
             const pct     = Math.round((cuartos.length / 4) * 100);
@@ -614,7 +787,6 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
                 padding: "9px 16px",
                 borderTop: "1px solid rgba(255,255,255,0.04)",
               }}>
-                {/* Row: número + nombre + minutos + % */}
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                   <span style={{
                     width: 22, fontSize: 11, fontWeight: 900,
@@ -636,7 +808,6 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
                   </span>
                 </div>
 
-                {/* 4-segment progress bar (clickable) */}
                 <div style={{ display: "flex", gap: 3, paddingLeft: 30 }}>
                   {[1, 2, 3, 4].map((q) => {
                     const plays = cuartos.includes(q);
@@ -657,7 +828,6 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
                   })}
                 </div>
 
-                {/* Q labels */}
                 <div className="no-print" style={{ display: "flex", gap: 3, paddingLeft: 30, marginTop: 2 }}>
                   {[1, 2, 3, 4].map((q) => (
                     <div key={q} style={{
@@ -673,7 +843,6 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
             );
           })}
         </div>
-
 
       </main>
 
