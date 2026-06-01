@@ -314,7 +314,7 @@ export default async function ReportesAsistenciaPage({
               const colorSemana = pctSemana !== null ? pctColor(pctSemana) : "var(--text-muted)";
               return (
                 <div key={j.id} style={{
-                  display: "grid", gridTemplateColumns: "1fr 60px 80px 80px 80px 1fr",
+                  display: "grid", gridTemplateColumns: esMesActual ? "1fr 60px 80px 80px 80px 1fr" : "1fr 60px 80px 80px 1fr",
                   alignItems: "center", gap: 4, padding: "10px 16px",
                   borderBottom: i < datos.length - 1 ? "1px solid var(--border)" : "none",
                 }}>
