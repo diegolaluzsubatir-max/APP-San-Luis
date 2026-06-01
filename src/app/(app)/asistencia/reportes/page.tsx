@@ -237,8 +237,9 @@ export default async function ReportesAsistenciaPage({
             ))}
           </div>
 
-          {datos.map(({ j, pctMes, pctAnual }, i) => {
-            const color = pctMes !== null ? pctColor(pctMes) : "var(--text-muted)";
+          {datos.map(({ j, pctMes, pctSemana, pctAnual }, i) => {
+            const color        = pctMes    !== null ? pctColor(pctMes)    : "var(--text-muted)";
+            const colorSemana  = pctSemana !== null ? pctColor(pctSemana) : "var(--text-muted)";
             return (
               <div key={j.id} style={{
                 display: "grid", gridTemplateColumns: "1fr 60px 80px 80px 80px 1fr",
