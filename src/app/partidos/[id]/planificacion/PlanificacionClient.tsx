@@ -743,16 +743,23 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
       </main>
 
       {/* ── Fixed bottom bar ─────────────────────────────────────── */}
-      <div className="no-print" style={{ position: "fixed", bottom: 64, left: 0, right: 0, zIndex: 40, background: "rgba(10,15,30,0.95)", backdropFilter: "blur(12px)", borderTop: "1px solid #1e2d4a", padding: "10px 16px", display: "flex", gap: 8 }}>
-        <button onClick={armarQ1} className="btn-touch" style={{ flex: 1, height: 44, borderRadius: 10, border: "none", cursor: "pointer", background: "rgba(255,255,255,0.08)", color: "#f1f5f9", fontSize: 11, fontWeight: 800, letterSpacing: "0.4px", textTransform: "uppercase" }}>
-          ⚡ Armar Q1
-        </button>
-        <button onClick={guardar} disabled={guardando} className="btn-touch" style={{ flex: 2, height: 44, borderRadius: 10, border: "none", cursor: guardando ? "not-allowed" : "pointer", background: guardando ? "rgba(14,165,233,0.3)" : "linear-gradient(135deg,#0EA5E9,#0284c7)", color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: "0.4px", textTransform: "uppercase", boxShadow: guardando ? "none" : "0 4px 14px rgba(14,165,233,0.4)" }}>
-          {guardando ? "Guardando…" : "💾 Guardar"}
-        </button>
-        <button onClick={printOficial} className="btn-touch" style={{ flex: 2, height: 44, borderRadius: 10, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#0047AB,#003080)", color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: "0.4px", textTransform: "uppercase", boxShadow: "0 4px 14px rgba(0,71,171,0.4)" }}>
-          📋 Planilla oficial
-        </button>
+      <div className="no-print" style={{ position: "fixed", bottom: 64, left: 0, right: 0, zIndex: 40, background: "rgba(10,15,30,0.95)", backdropFilter: "blur(12px)", borderTop: "1px solid #1e2d4a", padding: "10px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={armarQ1} className="btn-touch" style={{ flex: 1, height: 40, borderRadius: 10, border: "none", cursor: "pointer", background: "rgba(255,255,255,0.08)", color: "#f1f5f9", fontSize: 11, fontWeight: 800, letterSpacing: "0.4px", textTransform: "uppercase" }}>
+            ⚡ Armar Q1
+          </button>
+          <button onClick={guardar} disabled={guardando} className="btn-touch" style={{ flex: 2, height: 40, borderRadius: 10, border: "none", cursor: guardando ? "not-allowed" : "pointer", background: guardando ? "rgba(14,165,233,0.3)" : "linear-gradient(135deg,#0EA5E9,#0284c7)", color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: "0.4px", textTransform: "uppercase", boxShadow: guardando ? "none" : "0 4px 14px rgba(14,165,233,0.4)" }}>
+            {guardando ? "Guardando…" : "💾 Guardar"}
+          </button>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={printOficial} className="btn-touch" style={{ flex: 1, height: 40, borderRadius: 10, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#0047AB,#003080)", color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: "0.4px", textTransform: "uppercase", boxShadow: "0 4px 14px rgba(0,71,171,0.4)" }}>
+            📋 Planilla oficial
+          </button>
+          <button onClick={printHojaCambios} className="btn-touch" style={{ flex: 1, height: 40, borderRadius: 10, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#185FA5,#0f4080)", color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: "0.4px", textTransform: "uppercase", boxShadow: "0 4px 14px rgba(24,95,165,0.4)" }}>
+            🗂 Hoja de cambios
+          </button>
+        </div>
       </div>
 
       {/* ── Toast ────────────────────────────────────────────────── */}
