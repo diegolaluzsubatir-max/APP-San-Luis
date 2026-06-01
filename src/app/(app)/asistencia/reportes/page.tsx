@@ -12,7 +12,17 @@ export default async function ReportesAsistenciaPage() {
   const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
   const finMes    = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
 
-  const jugadores = await prisma.jugador.findMany({
+  // Semana en curso: lunes → domingo
+  const diaSemana   = hoy.getDay(); // 0=dom, 1=lun, …
+  const inicioSemana = new Date(hoy);
+  inicioSemana.setDate(hoy.getDate() - (diaSemana === 0 ? 6 : diaSemana - 1));
+  inicioSemana.setHours(0, 0, 0, 0);
+  const finSemana = new Date(inicioSemana);
+  finSemana.setDate(inicioSemana.getDate() + 6);
+  finSemana.setHours(23, 59, 59, 999);
+
+  const [jugadores, entrenosSemana] = await Promise.all([
+    prisma.jugador.findMany({
     orderBy: [{ fichado: "desc" }, { numero_camiseta: "asc" }],
     include: { asistencias: { include: { entrenamiento: true } } },
   });
