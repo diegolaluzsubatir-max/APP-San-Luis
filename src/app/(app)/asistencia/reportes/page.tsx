@@ -38,9 +38,6 @@ export default async function ReportesAsistenciaPage({
     .toLocaleDateString("es-UY", { month: "long", year: "numeric" })
     .toUpperCase();
 
-  const anteriorParam  = mesParam(year, month - 1 < 0 ? 11 : month - 1, );
-  const siguienteParam = mesParam(year, month + 1 > 11 ? 0  : month + 1);
-  // Correct year wrap
   const anteriorYear  = month === 0  ? year - 1 : year;
   const siguienteYear = month === 11 ? year + 1 : year;
 
