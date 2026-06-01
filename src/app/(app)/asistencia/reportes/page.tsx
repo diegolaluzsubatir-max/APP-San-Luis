@@ -7,9 +7,6 @@ function pctColor(pct: number) {
   return "#EF4444";
 }
 
-function mesParam(year: number, month: number): string {
-  return `${year}-${String(month + 1).padStart(2, "0")}`;
-}
 
 export default async function ReportesAsistenciaPage({
   searchParams,
