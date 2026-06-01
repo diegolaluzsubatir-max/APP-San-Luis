@@ -7,13 +7,45 @@ function pctColor(pct: number) {
   return "#EF4444";
 }
 
-export default async function ReportesAsistenciaPage() {
-  const hoy = new Date();
-  const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-  const finMes    = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
+function mesParam(year: number, month: number): string {
+  return `${year}-${String(month + 1).padStart(2, "0")}`;
+}
 
-  // Semana en curso: lunes → domingo
-  const diaSemana    = hoy.getDay(); // 0=dom, 1=lun, …
+export default async function ReportesAsistenciaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ mes?: string }>;
+}) {
+  const params = await searchParams;
+  const hoy = new Date();
+
+  // Parse selected month from ?mes=YYYY-MM, default to current month
+  let year  = hoy.getFullYear();
+  let month = hoy.getMonth(); // 0-indexed
+  if (params.mes) {
+    const [y, m] = params.mes.split("-").map(Number);
+    if (!isNaN(y) && !isNaN(m) && m >= 1 && m <= 12) {
+      year  = y;
+      month = m - 1;
+    }
+  }
+
+  const inicioMes = new Date(year, month, 1);
+  const finMes    = new Date(year, month + 1, 0, 23, 59, 59);
+  const esMesActual = year === hoy.getFullYear() && month === hoy.getMonth();
+
+  const mesLabel = inicioMes
+    .toLocaleDateString("es-UY", { month: "long", year: "numeric" })
+    .toUpperCase();
+
+  const anteriorParam  = mesParam(year, month - 1 < 0 ? 11 : month - 1, );
+  const siguienteParam = mesParam(year, month + 1 > 11 ? 0  : month + 1);
+  // Correct year wrap
+  const anteriorYear  = month === 0  ? year - 1 : year;
+  const siguienteYear = month === 11 ? year + 1 : year;
+
+  // Semana en curso (siempre basada en hoy, no en el mes seleccionado)
+  const diaSemana    = hoy.getDay();
   const inicioSemana = new Date(hoy);
   inicioSemana.setDate(hoy.getDate() - (diaSemana === 0 ? 6 : diaSemana - 1));
   inicioSemana.setHours(0, 0, 0, 0);
@@ -33,23 +65,45 @@ export default async function ReportesAsistenciaPage() {
     }),
   ]);
 
-  const mesLabel = hoy.toLocaleDateString("es-UY", { month: "long", year: "numeric" });
-
   const datos = jugadores.map((j) => {
     const mes = j.asistencias.filter(
-      (a) => new Date(a.entrenamiento.fecha) >= inicioMes && new Date(a.entrenamiento.fecha) <= finMes
+      (a) =>
+        new Date(a.entrenamiento.fecha) >= inicioMes &&
+        new Date(a.entrenamiento.fecha) <= finMes
     );
-    const pctMes = mes.length > 0
-      ? Math.round(mes.filter((a) => a.estado === "presente" || a.estado === "tardanza").length / mes.length * 100)
-      : null;
+    const pctMes =
+      mes.length > 0
+        ? Math.round(
+            (mes.filter((a) => a.estado === "presente" || a.estado === "tardanza").length /
+              mes.length) *
+              100
+          )
+        : null;
     const total    = j.asistencias.length;
-    const pctAnual = total > 0
-      ? Math.round(j.asistencias.filter((a) => a.estado === "presente" || a.estado === "tardanza").length / total * 100)
-      : null;
+    const pctAnual =
+      total > 0
+        ? Math.round(
+            (j.asistencias.filter((a) => a.estado === "presente" || a.estado === "tardanza")
+              .length /
+              total) *
+              100
+          )
+        : null;
     return { j, pctMes, pctAnual };
   });
 
-  const ranking = [...datos].filter((d) => d.pctMes !== null).sort((a, b) => (b.pctMes ?? 0) - (a.pctMes ?? 0));
+  const ranking = [...datos]
+    .filter((d) => d.pctMes !== null)
+    .sort((a, b) => (b.pctMes ?? 0) - (a.pctMes ?? 0));
+
+  const btnBase: React.CSSProperties = {
+    fontSize: 11, fontWeight: 700, padding: "5px 12px", borderRadius: 7,
+    border: "1px solid var(--border)", textDecoration: "none",
+    background: "var(--bg-card)", color: "#f1f5f9",
+  };
+  const btnDisabled: React.CSSProperties = {
+    ...btnBase, opacity: 0.3, pointerEvents: "none", cursor: "default",
+  };
 
   return (
     <div className="space-y-5 max-w-2xl">
@@ -75,26 +129,30 @@ export default async function ReportesAsistenciaPage() {
             borderRadius: 14, overflow: "hidden",
           }}>
             {entrenosSemana.map((e, i) => {
-              const total    = e.asistencias.length;
-              const presentes = e.asistencias.filter((a) => a.estado === "presente" || a.estado === "tardanza").length;
-              const pct      = total > 0 ? Math.round((presentes / total) * 100) : null;
-              const color    = pct !== null ? pctColor(pct) : "var(--text-muted)";
-              const fecha    = new Date(e.fecha);
-              const diaLabel = fecha.toLocaleDateString("es-UY", {
-                weekday: "short", day: "numeric", month: "short", timeZone: "America/Montevideo",
-              }).toUpperCase();
+              const total     = e.asistencias.length;
+              const presentes = e.asistencias.filter(
+                (a) => a.estado === "presente" || a.estado === "tardanza"
+              ).length;
+              const pct   = total > 0 ? Math.round((presentes / total) * 100) : null;
+              const color = pct !== null ? pctColor(pct) : "var(--text-muted)";
+              const diaLabel = new Date(e.fecha)
+                .toLocaleDateString("es-UY", {
+                  weekday: "short", day: "numeric", month: "short",
+                  timeZone: "America/Montevideo",
+                })
+                .toUpperCase();
               const esOpcional = e.tipo === "opcional";
               return (
                 <div key={e.id} style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                  padding: "12px 16px",
+                  display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
                   borderBottom: i < entrenosSemana.length - 1 ? "1px solid var(--border)" : "none",
                 }}>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 13, fontWeight: 700, color: "#f1f5f9" }}>{diaLabel}</p>
                     <span style={{
                       fontSize: 9, padding: "2px 6px", borderRadius: 4, fontWeight: 800,
-                      letterSpacing: "0.06em", textTransform: "uppercase", marginTop: 3, display: "inline-block",
+                      letterSpacing: "0.06em", textTransform: "uppercase",
+                      marginTop: 3, display: "inline-block",
                       background: esOpcional ? "rgba(245,158,11,0.1)" : "rgba(14,165,233,0.1)",
                       color: esOpcional ? "#F59E0B" : "#0EA5E9",
                       border: `1px solid ${esOpcional ? "rgba(245,158,11,0.25)" : "rgba(14,165,233,0.2)"}`,
@@ -106,7 +164,9 @@ export default async function ReportesAsistenciaPage() {
                     {pct !== null ? (
                       <>
                         <p style={{ fontSize: 20, fontWeight: 900, color, lineHeight: 1 }}>{pct}%</p>
-                        <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>{presentes}/{total}</p>
+                        <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>
+                          {presentes}/{total}
+                        </p>
                       </>
                     ) : (
                       <p style={{ fontSize: 12, color: "var(--text-muted)" }}>Sin datos</p>
@@ -119,14 +179,36 @@ export default async function ReportesAsistenciaPage() {
         )}
       </div>
 
-      {/* Tabla del mes */}
+      {/* Tabla del mes con navegación */}
       <div>
-        <p style={{
-          fontSize: 11, fontWeight: 800, letterSpacing: "0.12em",
-          textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 10,
-        }}>
-          Asistencia — {mesLabel}
-        </p>
+        {/* Título + navegación */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <p style={{
+            fontSize: 11, fontWeight: 800, letterSpacing: "0.12em",
+            textTransform: "uppercase", color: "var(--text-muted)",
+          }}>
+            {mesLabel}
+          </p>
+          <div style={{ display: "flex", gap: 6 }}>
+            <Link
+              href={`/asistencia/reportes?mes=${anteriorYear}-${String(month === 0 ? 12 : month).padStart(2, "0")}`}
+              style={btnBase}
+            >
+              ‹ Anterior
+            </Link>
+            {esMesActual ? (
+              <span style={btnDisabled}>Siguiente ›</span>
+            ) : (
+              <Link
+                href={`/asistencia/reportes?mes=${siguienteYear}-${String(month === 11 ? 1 : month + 2).padStart(2, "0")}`}
+                style={btnBase}
+              >
+                Siguiente ›
+              </Link>
+            )}
+          </div>
+        </div>
+
         <div style={{
           background: "var(--bg-card)", border: "1px solid var(--border)",
           borderRadius: 14, overflow: "hidden",
@@ -137,7 +219,7 @@ export default async function ReportesAsistenciaPage() {
             padding: "10px 16px", borderBottom: "1px solid var(--border)",
             background: "rgba(255,255,255,0.03)",
           }}>
-            {["Jugador", "Estado", "Este mes", "Anual", "Barra mes"].map((h, i) => (
+            {["Jugador", "Estado", "Mes sel.", "Anual", "Barra"].map((h, i) => (
               <span key={h} style={{
                 fontSize: 9, fontWeight: 800, letterSpacing: "0.1em",
                 textTransform: "uppercase", color: "var(--text-muted)",
@@ -151,15 +233,11 @@ export default async function ReportesAsistenciaPage() {
           {datos.map(({ j, pctMes, pctAnual }, i) => {
             const color = pctMes !== null ? pctColor(pctMes) : "var(--text-muted)";
             return (
-              <div
-                key={j.id}
-                style={{
-                  display: "grid", gridTemplateColumns: "1fr 60px 80px 80px 1fr",
-                  alignItems: "center", gap: 4,
-                  padding: "10px 16px",
-                  borderBottom: i < datos.length - 1 ? "1px solid var(--border)" : "none",
-                }}
-              >
+              <div key={j.id} style={{
+                display: "grid", gridTemplateColumns: "1fr 60px 80px 80px 1fr",
+                alignItems: "center", gap: 4, padding: "10px 16px",
+                borderBottom: i < datos.length - 1 ? "1px solid var(--border)" : "none",
+              }}>
                 <div>
                   <Link href={`/jugadores/${j.id}`} style={{
                     fontSize: 13, fontWeight: 700, color: "#f1f5f9", textDecoration: "none",
@@ -213,24 +291,29 @@ export default async function ReportesAsistenciaPage() {
           background: "var(--bg-card)", border: "1px solid var(--border)",
           borderRadius: 14, overflow: "hidden",
         }}>
-          {ranking.slice(0, 5).map(({ j, pctMes }, i) => {
-            const color = pctMes !== null ? pctColor(pctMes) : "var(--text-muted)";
-            return (
-              <div key={j.id} style={{
-                display: "flex", alignItems: "center", gap: 12,
-                padding: "12px 16px",
-                borderBottom: i < Math.min(ranking.length, 5) - 1 ? "1px solid var(--border)" : "none",
-              }}>
-                <span style={{ width: 28, textAlign: "center", fontSize: 18 }}>
-                  {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}°`}
-                </span>
-                <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: "#f1f5f9" }}>
-                  {j.nombre} {j.apellido}
-                </span>
-                <span style={{ fontSize: 15, fontWeight: 900, color }}>{pctMes}%</span>
-              </div>
-            );
-          })}
+          {ranking.length === 0 ? (
+            <div style={{ padding: "20px 16px", textAlign: "center" }}>
+              <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Sin datos para este mes</p>
+            </div>
+          ) : (
+            ranking.slice(0, 5).map(({ j, pctMes }, i) => {
+              const color = pctMes !== null ? pctColor(pctMes) : "var(--text-muted)";
+              return (
+                <div key={j.id} style={{
+                  display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
+                  borderBottom: i < Math.min(ranking.length, 5) - 1 ? "1px solid var(--border)" : "none",
+                }}>
+                  <span style={{ width: 28, textAlign: "center", fontSize: 18 }}>
+                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}°`}
+                  </span>
+                  <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: "#f1f5f9" }}>
+                    {j.nombre} {j.apellido}
+                  </span>
+                  <span style={{ fontSize: 15, fontWeight: 900, color }}>{pctMes}%</span>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </div>
