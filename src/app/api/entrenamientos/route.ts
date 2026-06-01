@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
   const {
     fecha, hora_inicio, hora_fin,
-    lugar, entrenador, objetivo, observaciones,
+    lugar, entrenador, objetivo, observaciones, tipo,
   } = body as Record<string, unknown>;
 
   if (!fecha) return NextResponse.json({ error: "Fecha requerida" }, { status: 400 });
