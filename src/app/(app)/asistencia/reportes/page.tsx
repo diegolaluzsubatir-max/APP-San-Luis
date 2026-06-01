@@ -59,6 +59,8 @@ export default async function ReportesAsistenciaPage({
     }),
   ]);
 
+  const idsSemana = new Set(entrenosSemana.map((e) => e.id));
+
   const datos = jugadores.map((j) => {
     const mes = j.asistencias.filter(
       (a) =>
@@ -73,6 +75,17 @@ export default async function ReportesAsistenciaPage({
               100
           )
         : null;
+
+    const semana = j.asistencias.filter((a) => idsSemana.has(a.entrenamiento.id));
+    const pctSemana =
+      semana.length > 0
+        ? Math.round(
+            (semana.filter((a) => a.estado === "presente" || a.estado === "tardanza").length /
+              semana.length) *
+              100
+          )
+        : null;
+
     const total    = j.asistencias.length;
     const pctAnual =
       total > 0
@@ -83,7 +96,7 @@ export default async function ReportesAsistenciaPage({
               100
           )
         : null;
-    return { j, pctMes, pctAnual };
+    return { j, pctMes, pctSemana, pctAnual };
   });
 
   const ranking = [...datos]
