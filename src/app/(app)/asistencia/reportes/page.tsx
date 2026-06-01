@@ -364,38 +364,6 @@ const btnBase: React.CSSProperties = {
           </div>
         </div>
 
-        {/* Ranking: 100% anual */}
-        <div>
-          <p style={{
-            fontSize: 11, fontWeight: 800, letterSpacing: "0.12em",
-            textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 10,
-          }}>
-            100% Asistencia Anual
-          </p>
-          <div style={{
-            background: "var(--bg-card)", border: "1px solid var(--border)",
-            borderRadius: 14, overflow: "hidden",
-          }}>
-            {rankingAnual.length === 0 ? (
-              <div style={{ padding: "20px 16px", textAlign: "center" }}>
-                <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Ningún jugador con 100% anual aún</p>
-              </div>
-            ) : (
-              rankingAnual.map(({ j }, i) => (
-                <div key={j.id} style={{
-                  display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
-                  borderBottom: i < rankingAnual.length - 1 ? "1px solid var(--border)" : "none",
-                }}>
-                  <span style={{ fontSize: 16 }}>⭐</span>
-                  <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: "#f1f5f9" }}>
-                    {j.nombre} {j.apellido}
-                  </span>
-                  <span style={{ fontSize: 15, fontWeight: 900, color: "#10B981" }}>100%</span>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
 
       </div>
     </>
