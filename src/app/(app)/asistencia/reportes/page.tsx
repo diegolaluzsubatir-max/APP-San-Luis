@@ -264,14 +264,14 @@ export default async function ReportesAsistenciaPage({
                   </span>
                 </div>
                 <div style={{ textAlign: "center" }}>
-                  {pctMes !== null
-                    ? <span style={{ fontSize: 13, fontWeight: 800, color }}>{pctMes}%</span>
+                  {pctSemana !== null
+                    ? <span style={{ fontSize: 13, fontWeight: 800, color: colorSemana }}>{pctSemana}%</span>
                     : <span style={{ fontSize: 12, color: "var(--text-muted)" }}>—</span>
                   }
                 </div>
                 <div style={{ textAlign: "center" }}>
-                  {pctSemana !== null
-                    ? <span style={{ fontSize: 13, fontWeight: 800, color: colorSemana }}>{pctSemana}%</span>
+                  {pctMes !== null
+                    ? <span style={{ fontSize: 13, fontWeight: 800, color }}>{pctMes}%</span>
                     : <span style={{ fontSize: 12, color: "var(--text-muted)" }}>—</span>
                   }
                 </div>
