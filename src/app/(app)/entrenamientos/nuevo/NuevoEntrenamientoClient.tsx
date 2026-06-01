@@ -75,6 +75,7 @@ export default function NuevoEntrenamientoClient() {
         entrenador:    form.entrenador,
         objetivo:      form.objetivo,
         observaciones: form.observaciones,
+        tipo:          form.tipo,
       }),
     });
 
