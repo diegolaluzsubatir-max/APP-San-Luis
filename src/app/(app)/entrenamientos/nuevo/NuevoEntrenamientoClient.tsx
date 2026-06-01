@@ -144,6 +144,15 @@ router.push("/entrenamientos");
         <input type="text" value={form.entrenador} onChange={(e) => setF("entrenador", e.target.value)} />
       </div>
 
+      {/* Tipo */}
+      <div>
+        <label>Tipo de entrenamiento</label>
+        <select value={form.tipo} onChange={(e) => setF("tipo", e.target.value)}>
+          <option value="obligatorio">Obligatorio</option>
+          <option value="opcional">Opcional</option>
+        </select>
+      </div>
+
       {/* Objetivo */}
       <div>
         <label>Objetivo del entrenamiento</label>
