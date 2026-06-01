@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
         entrenador:    (entrenador as string) || "Ernesto Fontes",
         objetivo:      (objetivo as string) || null,
         observaciones: (observaciones as string) || null,
+        tipo:          (tipo as string) || "obligatorio",
         estado:        "planificado",
       },
     });
