@@ -94,6 +94,7 @@ model Entrenamiento {
   suspendido         Boolean   @default(false)
   motivo_suspension  String?
   estado             String    @default("planificado")
+  tipo               String    @default("obligatorio")
   asistencias        AsistenciaEntrenamiento[]
 }
 
