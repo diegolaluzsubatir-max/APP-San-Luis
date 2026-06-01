@@ -333,6 +333,13 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
     window.print();
   }
 
+  function printHojaCambios() {
+    document.body.classList.add("print-cambios");
+    const cleanup = () => { document.body.classList.remove("print-cambios"); window.removeEventListener("afterprint", cleanup); };
+    window.addEventListener("afterprint", cleanup);
+    window.print();
+  }
+
   async function guardar() {
     setGuardando(true); setMsg(null);
     try {
