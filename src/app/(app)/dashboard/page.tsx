@@ -10,12 +10,6 @@ function fmtDiaMes(fecha: Date | string): string {
   }).toUpperCase();
 }
 
-function fmtCorto(fecha: Date | string): string {
-  const d = new Date(fecha);
-  const dia  = d.toLocaleDateString("es-UY", { day: "2-digit",   timeZone: TZ });
-  const mes  = d.toLocaleDateString("es-UY", { month: "short",   timeZone: TZ }).replace(".", "").toLowerCase();
-  return `${dia} ${mes}`;
-}
 
 export default async function DashboardPage() {
   const hoy      = new Date();
@@ -25,19 +19,17 @@ export default async function DashboardPage() {
 
   const [
     totalFichados, proximoEntreno, proximoPartido, partidosJugados,
-    todasAsistencias, totalEntrenosMes, jugadoresFichados, proxEntrenosRaw, proxPartidosRaw,
+    todasAsistencias, totalEntrenosMes, jugadoresFichados,
   ] = await Promise.all([
     prisma.jugador.count({ where: { fichado: true } }),
     prisma.entrenamiento.findFirst({ where: { fecha: { gte: hoy } }, orderBy: { fecha: "asc" } }),
-    prisma.partido.findFirst({ where: { fecha: { gte: hoy }, estado: "pendiente" }, orderBy: { fecha: "asc" } }),
+    prisma.partido.findFirst({ where: { fecha: { gte: hoy }, estado: { in: ["pendiente", "próximo"] } }, orderBy: { fecha: "asc" } }),
     prisma.partido.findMany({ where: { estado: { in: ["jugado", "finalizado"] } } }),
     prisma.asistenciaEntrenamiento.findMany({ select: { estado: true } }),
     prisma.entrenamiento.count({ where: { fecha: { gte: inicioMes, lte: finMes } } }),
     prisma.jugador.findMany({
       include: { asistencias: { where: { entrenamiento: { fecha: { gte: inicioMes, lte: finMes } } } } },
     }),
-    prisma.entrenamiento.findMany({ where: { fecha: { gte: hoy } }, orderBy: { fecha: "asc" }, take: 3 }),
-    prisma.partido.findMany({ where: { fecha: { gte: hoy }, estado: "pendiente" }, orderBy: { fecha: "asc" }, take: 3 }),
   ]);
 
   let notasUrgentes = 0;
@@ -83,11 +75,6 @@ export default async function DashboardPage() {
     if (prox < hoy) prox.setFullYear(hoy.getFullYear() + 1);
     return prox <= en7dias;
   });
-
-  const eventos = [
-    ...proxEntrenosRaw.map((e) => ({ fecha: e.fecha, tipo: "entreno" as const, label: e.objetivo ?? "Entrenamiento", hora: e.hora_inicio })),
-    ...proxPartidosRaw.map((p) => ({ fecha: p.fecha, tipo: "partido" as const, label: `vs ${p.rival}`, hora: null as string | null })),
-  ].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime()).slice(0, 3);
 
   const alertasList: { count: number; label: string; href: string; color: string; icon: string }[] = [];
   if (notasUrgentes > 0)            alertasList.push({ count: notasUrgentes,            label: "Notas pendientes",  href: "/notas",               color: "#EF4444", icon: "📝" });
@@ -271,57 +258,6 @@ export default async function DashboardPage() {
             </div>
           )}
 
-          {/* PRÓXIMOS EVENTOS */}
-          {eventos.length > 0 && (
-            <div style={{ ...card, overflow: "hidden" }}>
-              <p style={{
-                fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.5)",
-                letterSpacing: "1.5px", textTransform: "uppercase",
-                padding: "8px 12px 4px",
-              }}>
-                Próximos Eventos
-              </p>
-              {eventos.map((ev, i) => {
-                const isPartido = ev.tipo === "partido";
-                const dotColor  = isPartido ? "#EF4444" : "#10B981";
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      display: "flex", alignItems: "center", gap: 10, padding: "8px 12px",
-                      borderTop: "1px solid #1e2d4a",
-                    }}
-                  >
-                    <div style={{
-                      width: 8, height: 8, borderRadius: "50%", flexShrink: 0,
-                      background: dotColor, boxShadow: `0 0 6px ${dotColor}70`,
-                    }} />
-                    <span style={{ fontSize: 10, color: "rgba(241,245,249,0.4)", flexShrink: 0, width: 48 }}>
-                      {fmtCorto(ev.fecha)}
-                    </span>
-                    <span style={{ fontSize: 10, color: "rgba(241,245,249,0.4)", flexShrink: 0, width: 32 }}>
-                      {ev.hora ?? "—"}
-                    </span>
-                    <span style={{
-                      flex: 1, fontSize: 12, fontWeight: 700, color: "#f1f5f9",
-                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                    }}>
-                      {ev.label}
-                    </span>
-                    <span style={{
-                      fontSize: 8, padding: "2px 6px", borderRadius: 4, fontWeight: 800,
-                      letterSpacing: "0.05em", textTransform: "uppercase", flexShrink: 0,
-                      background: isPartido ? "rgba(239,68,68,0.12)" : "rgba(16,185,129,0.12)",
-                      color: dotColor,
-                      border: `1px solid ${isPartido ? "rgba(239,68,68,0.25)" : "rgba(16,185,129,0.25)"}`,
-                    }}>
-                      {isPartido ? "PARTIDO" : "ENTRENO"}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
       </div>
     </div>
