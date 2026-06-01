@@ -26,7 +26,7 @@ export default async function DashboardPage() {
     prisma.partido.findFirst({ where: { fecha: { gte: hoy }, estado: { in: ["pendiente", "próximo"] } }, orderBy: { fecha: "asc" } }),
     prisma.partido.findMany({ where: { estado: { in: ["jugado", "finalizado"] } } }),
     prisma.asistenciaEntrenamiento.findMany({ select: { estado: true } }),
-    prisma.entrenamiento.count({ where: { estado: "realizado" } }),
+    prisma.entrenamiento.count({ where: { fecha: { lt: hoy }, suspendido: false, asistencias: { some: {} } } }),
     prisma.jugador.findMany({
       include: { asistencias: { where: { entrenamiento: { fecha: { gte: inicioMes, lte: finMes } } } } },
     }),
