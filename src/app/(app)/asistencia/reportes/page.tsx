@@ -222,7 +222,7 @@ export default async function ReportesAsistenciaPage({
         }}>
           {/* Header */}
           <div style={{
-            display: "grid", gridTemplateColumns: "1fr 60px 80px 80px 1fr",
+            display: "grid", gridTemplateColumns: "1fr 60px 80px 80px 80px 1fr",
             padding: "10px 16px", borderBottom: "1px solid var(--border)",
             background: "rgba(255,255,255,0.03)",
           }}>
@@ -241,7 +241,7 @@ export default async function ReportesAsistenciaPage({
             const color = pctMes !== null ? pctColor(pctMes) : "var(--text-muted)";
             return (
               <div key={j.id} style={{
-                display: "grid", gridTemplateColumns: "1fr 60px 80px 80px 1fr",
+                display: "grid", gridTemplateColumns: "1fr 60px 80px 80px 80px 1fr",
                 alignItems: "center", gap: 4, padding: "10px 16px",
                 borderBottom: i < datos.length - 1 ? "1px solid var(--border)" : "none",
               }}>
