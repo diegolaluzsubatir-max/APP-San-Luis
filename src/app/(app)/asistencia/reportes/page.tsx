@@ -270,6 +270,12 @@ export default async function ReportesAsistenciaPage({
                   }
                 </div>
                 <div style={{ textAlign: "center" }}>
+                  {pctSemana !== null
+                    ? <span style={{ fontSize: 13, fontWeight: 800, color: colorSemana }}>{pctSemana}%</span>
+                    : <span style={{ fontSize: 12, color: "var(--text-muted)" }}>—</span>
+                  }
+                </div>
+                <div style={{ textAlign: "center" }}>
                   <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
                     {pctAnual !== null ? `${pctAnual}%` : "—"}
                   </span>
