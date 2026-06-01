@@ -294,11 +294,11 @@ export default async function ReportesAsistenciaPage({
             borderRadius: 14, overflow: "hidden",
           }}>
             <div style={{
-              display: "grid", gridTemplateColumns: "1fr 60px 80px 80px 80px 1fr",
+              display: "grid", gridTemplateColumns: esMesActual ? "1fr 60px 80px 80px 80px 1fr" : "1fr 60px 80px 80px 1fr",
               padding: "10px 16px", borderBottom: "1px solid var(--border)",
               background: "rgba(255,255,255,0.03)",
             }}>
-              {["Jugador", "Estado", "Semana", "Mes sel.", "Anual", "Barra"].map((h, i) => (
+              {(esMesActual ? ["Jugador", "Estado", "Semana", "Mes sel.", "Anual", "Barra"] : ["Jugador", "Estado", "Mes sel.", "Anual", "Barra"]).map((h, i) => (
                 <span key={h} style={{
                   fontSize: 9, fontWeight: 800, letterSpacing: "0.1em",
                   textTransform: "uppercase", color: "var(--text-muted)",
