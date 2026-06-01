@@ -100,10 +100,7 @@ export default async function ReportesAsistenciaPage({
     return { j, pctMes, pctSemana, pctAnual };
   });
 
-  // Ranking: todos los jugadores con 100% anual
-  const rankingAnual = datos.filter((d) => d.pctAnual === 100);
-
-  const btnBase: React.CSSProperties = {
+const btnBase: React.CSSProperties = {
     fontSize: 11, fontWeight: 700, padding: "5px 12px", borderRadius: 7,
     border: "1px solid var(--border)", textDecoration: "none",
     background: "var(--bg-card)", color: "#f1f5f9",
