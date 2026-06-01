@@ -414,35 +414,38 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
           .plan-footer-firma-line { width: 120px; border-bottom: 1.5px solid #000; margin: 16px 0 3px auto; display: block; }
 
           /* ── HOJA DE CAMBIOS (body.print-cambios) ────────────── */
-          body.print-cambios { background: white !important; font-family: Arial, Helvetica, sans-serif; }
+          body.print-cambios { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          html body.print-cambios,
+          body.print-cambios,
+          body.print-cambios .print-hoja { background: #ffffff !important; background-color: #ffffff !important; }
           body.print-cambios header, body.print-cambios nav { display: none !important; }
           body.print-cambios .no-print { display: none !important; }
           body.print-cambios main > *:not(.print-hoja) { display: none !important; }
-          body.print-cambios main { max-width: none !important; padding: 0 !important; margin: 0 !important; }
-          body.print-cambios .print-hoja { display: block !important; }
+          body.print-cambios main { max-width: none !important; padding: 0 !important; margin: 0 !important; background: #ffffff !important; }
+          body.print-cambios .print-hoja { display: block !important; font-family: Arial, Helvetica, sans-serif; color: #111 !important; }
 
-          .hoja-stripe { height: 6px; background: #185FA5 !important; width: 100%; margin-bottom: 12px; }
-          .hoja-header { display: flex !important; align-items: center; gap: 14px; padding: 0 0 10px; border-bottom: 2px solid #185FA5; margin-bottom: 14px; }
-          .hoja-title { font-size: 22px; font-weight: 900; color: #185FA5; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 3px; }
-          .hoja-partido { font-size: 14px; font-weight: 700; color: #111; margin: 0 0 4px; }
-          .hoja-meta { font-size: 11px; color: #555; }
-          .hoja-q-block { margin-bottom: 10px; border: 1.5px solid #185FA5; border-radius: 4px; overflow: hidden; break-inside: avoid; }
-          .hoja-q-head { background: #185FA5 !important; color: white !important; padding: 7px 12px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
-          .hoja-cambio-row { display: flex !important; align-items: center; gap: 8px; padding: 9px 12px; border-bottom: 0.5px solid #ddd; }
+          .hoja-stripe { height: 6px; background: #185FA5 !important; background-color: #185FA5 !important; width: 100%; margin-bottom: 12px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          .hoja-header { display: flex !important; align-items: center; gap: 14px; padding: 0 0 10px; border-bottom: 2px solid #185FA5; margin-bottom: 14px; background: #ffffff !important; }
+          .hoja-title { font-size: 22px; font-weight: 900; color: #185FA5 !important; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 3px; }
+          .hoja-partido { font-size: 14px; font-weight: 700; color: #111111 !important; margin: 0 0 4px; }
+          .hoja-meta { font-size: 12px; color: #444444 !important; font-weight: 500; }
+          .hoja-q-block { margin-bottom: 10px; border: 1.5px solid #185FA5; border-radius: 4px; overflow: hidden; break-inside: avoid; background: #ffffff !important; }
+          .hoja-q-head { background: #185FA5 !important; background-color: #185FA5 !important; color: #ffffff !important; padding: 7px 12px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          .hoja-cambio-row { display: flex !important; align-items: center; gap: 8px; padding: 9px 12px; border-bottom: 0.5px solid #dddddd; background: #ffffff !important; }
           .hoja-cambio-row:last-child { border-bottom: none; }
-          .hoja-badge { font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.06em; flex-shrink: 0; }
-          .hoja-badge-sale  { background: #fde8e8 !important; color: #b91c1c !important; border: 1px solid #fca5a5; }
-          .hoja-badge-entra { background: #dcfce7 !important; color: #15803d !important; border: 1px solid #86efac; }
-          .hoja-jugador-sale  { font-size: 13px; font-weight: 700; color: #b91c1c; flex: 1; }
-          .hoja-jugador-entra { font-size: 13px; font-weight: 700; color: #15803d; flex: 1; }
-          .hoja-arrow { font-size: 16px; color: #bbb; flex-shrink: 0; }
-          .hoja-sin-cambios { padding: 10px 12px; font-size: 12px; color: #999; font-style: italic; }
-          .hoja-footer { margin-top: 14px; }
+          .hoja-badge { font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.06em; flex-shrink: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          .hoja-badge-sale  { background: #fde8e8 !important; background-color: #fde8e8 !important; color: #b91c1c !important; border: 1px solid #fca5a5; }
+          .hoja-badge-entra { background: #dcfce7 !important; background-color: #dcfce7 !important; color: #15803d !important; border: 1px solid #86efac; }
+          .hoja-jugador-sale  { font-size: 13px; font-weight: 700; color: #b91c1c !important; flex: 1; }
+          .hoja-jugador-entra { font-size: 13px; font-weight: 700; color: #15803d !important; flex: 1; }
+          .hoja-arrow { font-size: 16px; color: #888888 !important; flex-shrink: 0; }
+          .hoja-sin-cambios { padding: 10px 12px; font-size: 12px; color: #888888 !important; font-style: italic; background: #ffffff !important; }
+          .hoja-footer { margin-top: 14px; background: #ffffff !important; }
           .hoja-ausentes-box { border: 1.5px solid #185FA5; border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
-          .hoja-ausentes-head { background: #185FA5 !important; color: white !important; padding: 6px 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
-          .hoja-ausentes-body { padding: 8px 12px; font-size: 12px; color: #333; line-height: 2; }
-          .hoja-total { text-align: right; font-size: 12px; color: #555; font-weight: 600; border-top: 1px solid #ddd; padding-top: 6px; margin-top: 6px; }
-          .hoja-generated { text-align: right; font-size: 9px; color: #bbb; margin-top: 3px; }
+          .hoja-ausentes-head { background: #185FA5 !important; background-color: #185FA5 !important; color: #ffffff !important; padding: 6px 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          .hoja-ausentes-body { padding: 8px 12px; font-size: 12px; color: #333333 !important; line-height: 2; background: #ffffff !important; }
+          .hoja-total { text-align: right; font-size: 12px; color: #444444 !important; font-weight: 600; border-top: 1px solid #dddddd; padding-top: 6px; margin-top: 6px; }
+          .hoja-generated { text-align: right; font-size: 9px; color: #999999 !important; margin-top: 3px; }
         }
       `}</style>
 
