@@ -537,6 +537,70 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
           </div>
         </div>
 
+        {/* ── Hoja de cambios (solo print-cambios) ────────────────── */}
+        <div className="print-hoja" style={{ display: "none" }}>
+          <div className="hoja-stripe" />
+          <div className="hoja-header">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/Escudo.png" alt="" style={{ width: 56, height: 56, objectFit: "contain", flexShrink: 0 }} />
+            <div>
+              <p className="hoja-title">Hoja de cambios</p>
+              <p className="hoja-partido">San Luis vs {partido.rival}</p>
+              <p className="hoja-meta">
+                {fmtFecha(partido.fecha).replace(/^\w/, c => c.toUpperCase())}
+                {" · "}
+                {partido.condicion === "local" ? "Local" : "Visitante"}
+                {partido.lugar ? ` · ${partido.lugar}` : ""}
+              </p>
+            </div>
+          </div>
+
+          {([2, 3, 4] as const).map(q => {
+            const qCambios = cambios.filter(c => c.cuarto === q);
+            return (
+              <div key={q} className="hoja-q-block">
+                <div className="hoja-q-head">Empieza {Q_NAMES[q]}</div>
+                {qCambios.length === 0 ? (
+                  <div className="hoja-sin-cambios">Sin cambios</div>
+                ) : qCambios.map(c => {
+                  const sale  = jugadoresFichados.find(j => j.id === c.saleId);
+                  const entra = jugadoresFichados.find(j => j.id === c.entraId);
+                  const nSale  = sale  ? `#${sale.numero_camiseta  ?? "—"} ${sale.nombre}  ${sale.apellido}`  : `#${c.saleId}`;
+                  const nEntra = entra ? `#${entra.numero_camiseta ?? "—"} ${entra.nombre} ${entra.apellido}` : `#${c.entraId}`;
+                  return (
+                    <div key={c.id} className="hoja-cambio-row">
+                      <span className="hoja-badge hoja-badge-sale">SALE</span>
+                      <span className="hoja-jugador-sale">{nSale}</span>
+                      <span className="hoja-arrow">→</span>
+                      <span className="hoja-badge hoja-badge-entra">ENTRA</span>
+                      <span className="hoja-jugador-entra">{nEntra}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+
+          <div className="hoja-footer">
+            {ausentes.size > 0 && (
+              <div className="hoja-ausentes-box">
+                <div className="hoja-ausentes-head">No vienen hoy ({ausentes.size})</div>
+                <div className="hoja-ausentes-body">
+                  {sortByPos(jugadoresFichados.filter(j => ausentes.has(j.id))).map(j => (
+                    <span key={j.id} style={{ marginRight: 16, display: "inline-block" }}>
+                      #{j.numero_camiseta ?? "—"} {j.nombre} {j.apellido}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="hoja-total">Total de cambios: {cambios.length}</div>
+            <div className="hoja-generated">
+              Generado el {new Date().toLocaleDateString("es-UY", { day: "numeric", month: "long", year: "numeric" })}
+            </div>
+          </div>
+        </div>
+
         {/* ── ¿Quién no viene hoy? ─────────────────────────────────── */}
         <div className="no-print" style={{ background: "rgba(17,24,39,0.90)", backdropFilter: "blur(10px)", border: "1px solid #1e2d4a", borderRadius: 14, overflow: "hidden", marginBottom: 12 }}>
           <div style={{ padding: "10px 16px", borderBottom: "1px solid #1e2d4a", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
