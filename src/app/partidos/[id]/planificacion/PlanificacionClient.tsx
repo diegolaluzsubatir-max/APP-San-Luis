@@ -448,7 +448,7 @@ export default function PlanificacionClient({ partido, jugadoresFichados }: Prop
 
       <Header />
 
-      <main style={{ paddingBottom: 150, maxWidth: 620, margin: "0 auto" }} className="p-4">
+      <main style={{ paddingBottom: 200, maxWidth: 620, margin: "0 auto" }} className="p-4">
 
         {/* ── Info del partido ─────────────────────────────────────── */}
         <div className="no-print" style={{ background: "rgba(17,24,39,0.90)", backdropFilter: "blur(10px)", border: "1px solid #1e2d4a", borderRadius: 14, padding: "14px 16px", marginBottom: 12 }}>
