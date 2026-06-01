@@ -226,7 +226,7 @@ export default async function ReportesAsistenciaPage({
             padding: "10px 16px", borderBottom: "1px solid var(--border)",
             background: "rgba(255,255,255,0.03)",
           }}>
-            {["Jugador", "Estado", "Mes sel.", "Semana", "Anual", "Barra"].map((h, i) => (
+            {["Jugador", "Estado", "Semana", "Mes sel.", "Anual", "Barra"].map((h, i) => (
               <span key={h} style={{
                 fontSize: 9, fontWeight: 800, letterSpacing: "0.1em",
                 textTransform: "uppercase", color: "var(--text-muted)",
