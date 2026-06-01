@@ -39,6 +39,7 @@ export default function NuevoEntrenamientoClient() {
     entrenador:  "Ernesto Fontes",
     objetivo:    "",
     observaciones: "",
+    tipo:        "obligatorio",
   });
   const [suspendido,   setSuspendido]   = useState(false);
   const [motivoTipo,   setMotivoTipo]   = useState("Lluvia");
