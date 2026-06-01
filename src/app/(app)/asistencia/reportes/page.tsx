@@ -1,4 +1,4 @@
-﻿import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
 function pctColor(pct: number) {
@@ -13,7 +13,7 @@ export default async function ReportesAsistenciaPage() {
   const finMes    = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
 
   // Semana en curso: lunes → domingo
-  const diaSemana   = hoy.getDay(); // 0=dom, 1=lun, …
+  const diaSemana    = hoy.getDay(); // 0=dom, 1=lun, …
   const inicioSemana = new Date(hoy);
   inicioSemana.setDate(hoy.getDate() - (diaSemana === 0 ? 6 : diaSemana - 1));
   inicioSemana.setHours(0, 0, 0, 0);
@@ -23,9 +23,15 @@ export default async function ReportesAsistenciaPage() {
 
   const [jugadores, entrenosSemana] = await Promise.all([
     prisma.jugador.findMany({
-    orderBy: [{ fichado: "desc" }, { numero_camiseta: "asc" }],
-    include: { asistencias: { include: { entrenamiento: true } } },
-  });
+      orderBy: [{ fichado: "desc" }, { numero_camiseta: "asc" }],
+      include: { asistencias: { include: { entrenamiento: true } } },
+    }),
+    prisma.entrenamiento.findMany({
+      where: { fecha: { gte: inicioSemana, lte: finSemana }, suspendido: false },
+      orderBy: { fecha: "asc" },
+      include: { asistencias: true },
+    }),
+  ]);
 
   const mesLabel = hoy.toLocaleDateString("es-UY", { month: "long", year: "numeric" });
 
@@ -47,7 +53,73 @@ export default async function ReportesAsistenciaPage() {
 
   return (
     <div className="space-y-5 max-w-2xl">
-      {/* Month table */}
+
+      {/* ESTA SEMANA */}
+      <div>
+        <p style={{
+          fontSize: 11, fontWeight: 800, letterSpacing: "0.12em",
+          textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 10,
+        }}>
+          Esta semana
+        </p>
+        {entrenosSemana.length === 0 ? (
+          <div style={{
+            background: "var(--bg-card)", border: "1px solid var(--border)",
+            borderRadius: 14, padding: "20px 16px", textAlign: "center",
+          }}>
+            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Sin actividad esta semana</p>
+          </div>
+        ) : (
+          <div style={{
+            background: "var(--bg-card)", border: "1px solid var(--border)",
+            borderRadius: 14, overflow: "hidden",
+          }}>
+            {entrenosSemana.map((e, i) => {
+              const total    = e.asistencias.length;
+              const presentes = e.asistencias.filter((a) => a.estado === "presente" || a.estado === "tardanza").length;
+              const pct      = total > 0 ? Math.round((presentes / total) * 100) : null;
+              const color    = pct !== null ? pctColor(pct) : "var(--text-muted)";
+              const fecha    = new Date(e.fecha);
+              const diaLabel = fecha.toLocaleDateString("es-UY", {
+                weekday: "short", day: "numeric", month: "short", timeZone: "America/Montevideo",
+              }).toUpperCase();
+              const esOpcional = e.tipo === "opcional";
+              return (
+                <div key={e.id} style={{
+                  display: "flex", alignItems: "center", gap: 12,
+                  padding: "12px 16px",
+                  borderBottom: i < entrenosSemana.length - 1 ? "1px solid var(--border)" : "none",
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "#f1f5f9" }}>{diaLabel}</p>
+                    <span style={{
+                      fontSize: 9, padding: "2px 6px", borderRadius: 4, fontWeight: 800,
+                      letterSpacing: "0.06em", textTransform: "uppercase", marginTop: 3, display: "inline-block",
+                      background: esOpcional ? "rgba(245,158,11,0.1)" : "rgba(14,165,233,0.1)",
+                      color: esOpcional ? "#F59E0B" : "#0EA5E9",
+                      border: `1px solid ${esOpcional ? "rgba(245,158,11,0.25)" : "rgba(14,165,233,0.2)"}`,
+                    }}>
+                      {e.tipo}
+                    </span>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    {pct !== null ? (
+                      <>
+                        <p style={{ fontSize: 20, fontWeight: 900, color, lineHeight: 1 }}>{pct}%</p>
+                        <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>{presentes}/{total}</p>
+                      </>
+                    ) : (
+                      <p style={{ fontSize: 12, color: "var(--text-muted)" }}>Sin datos</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Tabla del mes */}
       <div>
         <p style={{
           fontSize: 11, fontWeight: 800, letterSpacing: "0.12em",
