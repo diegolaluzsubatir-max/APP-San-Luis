@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(
   req: NextRequest,
@@ -12,15 +16,17 @@ export async function POST(
   const file = formData.get("foto") as File | null;
   if (!file) return NextResponse.json({ error: "Sin archivo" }, { status: 400 });
 
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-
   const ext = file.type === "image/png" ? "png" : "jpg";
-  const dir = path.join(process.cwd(), "public", "jugadores");
-  await mkdir(dir, { recursive: true });
+  const path = `${id}.${ext}`;
+  const bytes = await file.arrayBuffer();
 
-  const filename = `${id}.${ext}`;
-  await writeFile(path.join(dir, filename), buffer);
+  const { error } = await supabase.storage
+    .from("jugadores")
+    .upload(path, bytes, { contentType: file.type, upsert: true });
 
-  return NextResponse.json({ url: `/jugadores/${filename}` });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const { data } = supabase.storage.from("jugadores").getPublicUrl(path);
+
+  return NextResponse.json({ url: data.publicUrl });
 }
