@@ -53,9 +53,27 @@ export default function BottomNav() {
           >
             <div style={{
               width: 36, height: 4, borderRadius: 2,
-              background: "#2a4070", margin: "0 auto 16px",
+              background: "#2a4070", margin: "0 auto 12px",
             }} />
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 4, padding: "0 16px" }}>
+            <div style={{ padding: "0 16px 10px" }}>
+              <Link
+                href="/dashboard"
+                onClick={() => setMasOpen(false)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  color: "rgba(241,245,249,0.55)",
+                  textDecoration: "none",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  letterSpacing: "0.02em",
+                }}
+              >
+                <span style={{ fontSize: 16 }}>←</span> Volver
+              </Link>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 4, padding: "0 16px" }}>
               {MAS_ITEMS.map((item) => (
                 <Link
                   key={item.href}
