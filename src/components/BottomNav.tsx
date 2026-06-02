@@ -16,7 +16,6 @@ const MAS_ITEMS = [
   { href: "/asistencia",    label: "Asistencia",    emoji: "✅" },
   { href: "/evolucion",     label: "Evolución",     emoji: "📈" },
   { href: "/documentacion", label: "Documentación", emoji: "📄" },
-  { href: "/calendario",    label: "Calendario",    emoji: "📅" },
   { href: "/informes",      label: "Informes",      emoji: "🗂️" },
 ];
 
