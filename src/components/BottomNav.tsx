@@ -17,6 +17,7 @@ const MAS_ITEMS = [
   { href: "/evolucion",     label: "Evolución",     emoji: "📈" },
   { href: "/documentacion", label: "Documentación", emoji: "📄" },
   { href: "/informes",      label: "Informes",      emoji: "🗂️" },
+  { href: "/objetivos",     label: "Objetivos",     emoji: "🎯" },
 ];
 
 export default function BottomNav() {
