@@ -4,18 +4,21 @@ import { estadoDocumento, resultadoPartido } from "@/lib/utils";
 
 const NOTAS_SEMANALES = [
   { objetivo: "Disfrutar cada entrenamiento",                    frase: "Jugamos porque nos hace felices." },
-  { objetivo: "Ayudar a un compañero",                          frase: "Solos llegamos rápido, juntos llegamos lejos." },
-  { objetivo: "Escuchar y respetar al otro",                    frase: "El respeto se entrena como el pase." },
-  { objetivo: "Dar lo mejor sin miedo a equivocarse",           frase: "Los errores también enseñan." },
   { objetivo: "Sentirse parte del grupo",                       frase: "Esto es más que un equipo, es una familia." },
-  { objetivo: "Mejorar un poquito cada día",                    frase: "No hay que ser el mejor, hay que ser mejor que ayer." },
-  { objetivo: "Compartir dentro y fuera de la cancha",          frase: "Lo que se comparte, se disfruta el doble." },
-  { objetivo: "Entrenar con compromiso",                        frase: "El esfuerzo de hoy es la sonrisa de mañana." },
-  { objetivo: "Bancar la frustración y seguir",                 frase: "Caerse es parte del juego, levantarse también." },
-  { objetivo: "Crecer como personas, no solo como jugadores",   frase: "Formamos personas antes que futbolistas." },
-  { objetivo: "Venir con alegría",                              frase: "La camiseta se siente, no se explica." },
   { objetivo: "Recordar por qué empezamos",                     frase: "Por la diversión y por estar juntos." },
+  { objetivo: "Venir con alegría",                              frase: "La camiseta se siente, no se explica." },
+  { objetivo: "Mejorar un poquito cada día",                    frase: "No hay que ser el mejor, hay que ser mejor que ayer." },
+  { objetivo: "Dar lo mejor sin miedo a equivocarse",           frase: "Los errores también enseñan." },
+  { objetivo: "Entrenar con compromiso",                        frase: "El esfuerzo de hoy es la sonrisa de mañana." },
+  { objetivo: "Compartir dentro y fuera de la cancha",          frase: "Lo que se comparte, se disfruta el doble." },
+  { objetivo: "Ayudar a un compañero",                          frase: "Solos llegamos rápido, juntos llegamos lejos." },
+  { objetivo: "Crecer como personas, no solo como jugadores",   frase: "Formamos personas antes que futbolistas." },
+  { objetivo: "Bancar la frustración y seguir",                 frase: "Caerse es parte del juego, levantarse también." },
+  { objetivo: "Escuchar y respetar al otro",                    frase: "El respeto se entrena como el pase." },
 ];
+
+// Semana de inicio del ciclo: semana 22 del año 2026 (lunes 1 jun 2026) → índice 0
+const SEMANA_INICIO = 22;
 
 function getWeekOfYear(date: Date): number {
   const startOfYear = new Date(date.getFullYear(), 0, 1);
