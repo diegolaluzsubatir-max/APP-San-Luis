@@ -37,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`h-full ${caveat.variable}`}>
+    <html lang="es" className={`h-full ${kalam.variable}`}>
       <body className="min-h-full">
         {/* Fixed dark overlay encima del fondo de estadio */}
         <div
