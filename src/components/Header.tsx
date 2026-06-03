@@ -30,6 +30,7 @@ const BACK_ROUTES: [RegExp, string][] = [
   [/^\/jugadores\/\d+/,                   "/jugadores"],
   [/^\/partidos\/\d+/,                    "/partidos"],
   [/^\/evolucion\/\d+/,                   "/evolucion"],
+  [/^\/objetivos$/,                        "/dashboard"],
 ];
 
 function getBack(pathname: string): string | null {
