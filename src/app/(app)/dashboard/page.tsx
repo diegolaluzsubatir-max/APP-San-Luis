@@ -302,6 +302,61 @@ function DChip({ children, color }: { children: React.ReactNode; color: string }
   );
 }
 
+function NotaSemanal({ semana }: { semana: number }) {
+  const nota = NOTAS_SEMANALES[semana % NOTAS_SEMANALES.length];
+  return (
+    <div style={{ marginTop: 12 }}>
+      <div style={{
+        background: "rgba(17,24,39,0.72)",
+        border: "1px solid rgba(14,165,233,0.18)",
+        borderRadius: 12,
+        padding: "12px 16px 14px",
+        position: "relative",
+      }}>
+        {/* Corner accents */}
+        <div style={{
+          position: "absolute", top: 7, left: 7,
+          width: 12, height: 12,
+          borderTop: "1.5px solid rgba(14,165,233,0.28)",
+          borderLeft: "1.5px solid rgba(14,165,233,0.28)",
+          borderRadius: "2px 0 0 0",
+          pointerEvents: "none",
+        }} />
+        <div style={{
+          position: "absolute", bottom: 7, right: 7,
+          width: 12, height: 12,
+          borderBottom: "1.5px solid rgba(14,165,233,0.28)",
+          borderRight: "1.5px solid rgba(14,165,233,0.28)",
+          borderRadius: "0 0 2px 0",
+          pointerEvents: "none",
+        }} />
+
+        <p style={{
+          fontSize: 9, fontWeight: 700, letterSpacing: "0.14em",
+          textTransform: "uppercase", color: "rgba(14,165,233,0.5)",
+          marginBottom: 7,
+        }}>
+          Objetivo de la semana
+        </p>
+        <p style={{
+          fontFamily: "'Caveat', cursive",
+          fontSize: 18, fontWeight: 600,
+          color: "#f1f5f9", lineHeight: 1.25, marginBottom: 5,
+        }}>
+          {nota.objetivo}
+        </p>
+        <p style={{
+          fontFamily: "'Caveat', cursive",
+          fontSize: 16, fontStyle: "italic",
+          color: "rgba(241,245,249,0.55)", lineHeight: 1.3,
+        }}>
+          &ldquo;{nota.frase}&rdquo;
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function StatCell({ label, value, color = "#f1f5f9" }: { label: string; value: number | string; color?: string }) {
   return (
     <div style={{ padding: "10px 6px", textAlign: "center" }}>
