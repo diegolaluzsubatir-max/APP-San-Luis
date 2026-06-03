@@ -337,22 +337,21 @@ function NotaSemanal({ semana }: { semana: number }) {
 
         <p style={{
           fontSize: 9, fontWeight: 700, letterSpacing: "0.14em",
-          textTransform: "uppercase", color: "rgba(14,165,233,0.5)",
-          marginBottom: 7,
+          textTransform: "uppercase", color: "rgba(14,165,233,0.6)",
+          marginBottom: 8,
         }}>
           Objetivo de la semana
         </p>
         <p style={{
-          fontFamily: "var(--font-caveat), cursive",
-          fontSize: 18, fontWeight: 600,
-          color: "#f1f5f9", lineHeight: 1.25, marginBottom: 5,
+          fontFamily: "var(--font-handwritten), cursive",
+          fontSize: 22, fontWeight: 700,
+          color: "#f1f5f9", lineHeight: 1.25, marginBottom: 6,
         }}>
           {nota.objetivo}
         </p>
         <p style={{
-          fontFamily: "var(--font-caveat), cursive",
-          fontSize: 16, fontStyle: "italic",
-          color: "rgba(241,245,249,0.55)", lineHeight: 1.3,
+          fontSize: 14, fontStyle: "italic",
+          color: "rgba(241,245,249,0.72)", lineHeight: 1.4,
         }}>
           &ldquo;{nota.frase}&rdquo;
         </p>
