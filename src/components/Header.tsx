@@ -14,6 +14,7 @@ const SECTION_TITLES: [string, string][] = [
   ["/notas",          "Notas Internas"],
   ["/informes",       "Informes"],
   ["/calendario",     "Calendario"],
+  ["/objetivos",      "Objetivos del equipo"],
 ];
 
 function getTitle(pathname: string): string {
