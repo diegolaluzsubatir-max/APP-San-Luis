@@ -339,14 +339,14 @@ function NotaSemanal({ semana }: { semana: number }) {
           Objetivo de la semana
         </p>
         <p style={{
-          fontFamily: "'Caveat', cursive",
+          fontFamily: "var(--font-caveat), cursive",
           fontSize: 18, fontWeight: 600,
           color: "#f1f5f9", lineHeight: 1.25, marginBottom: 5,
         }}>
           {nota.objetivo}
         </p>
         <p style={{
-          fontFamily: "'Caveat', cursive",
+          fontFamily: "var(--font-caveat), cursive",
           fontSize: 16, fontStyle: "italic",
           color: "rgba(241,245,249,0.55)", lineHeight: 1.3,
         }}>
