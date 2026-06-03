@@ -306,7 +306,8 @@ function DChip({ children, color }: { children: React.ReactNode; color: string }
 }
 
 function NotaSemanal({ semana }: { semana: number }) {
-  const nota = NOTAS_SEMANALES[semana % NOTAS_SEMANALES.length];
+  const n = NOTAS_SEMANALES.length;
+  const nota = NOTAS_SEMANALES[((semana - SEMANA_INICIO) % n + n) % n];
   return (
     <div style={{ marginTop: 12 }}>
       <div style={{
