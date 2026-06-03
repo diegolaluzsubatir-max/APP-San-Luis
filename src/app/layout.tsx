@@ -1,5 +1,13 @@
 import type { Metadata, Viewport } from "next";
+import { Caveat } from "next/font/google";
 import "./globals.css";
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-caveat",
+  display: "swap",
+});
 
 export const viewport: Viewport = {
   width: "device-width",
