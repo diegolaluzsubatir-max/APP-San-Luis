@@ -281,6 +281,10 @@ export default async function DashboardPage() {
 
         </div>
       </div>
+
+      {/* ── Nota semanal ─────────────────────────────────────────────────── */}
+      <NotaSemanal semana={getWeekOfYear(hoy)} />
+
     </div>
   );
 }
