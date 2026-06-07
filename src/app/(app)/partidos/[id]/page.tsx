@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { fmtFechaLarga, resultadoPartido } from "@/lib/utils";
 import ResultadoClient from "./ResultadoClient";
+import AccionesClient from "./AccionesClient";
 
 interface Props { params: Promise<{ id: string }> }
 
