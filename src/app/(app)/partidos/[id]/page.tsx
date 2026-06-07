@@ -85,7 +85,7 @@ export default async function PartidoDetallePage({ params }: Props) {
       </div>
 
       {/* Registrar resultado */}
-      {partido.estado !== "jugado" && partido.estado !== "finalizado" && (
+      {partido.estado !== "jugado" && partido.estado !== "finalizado" && partido.estado !== "suspendido" && (
         <ResultadoClient
           partidoId={partido.id}
           condicion={partido.condicion}
