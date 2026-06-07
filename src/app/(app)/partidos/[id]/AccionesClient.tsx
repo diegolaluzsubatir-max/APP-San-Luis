@@ -97,7 +97,7 @@ export default function AccionesClient({ partidoId, estado, notas, rival }: Prop
               onKeyDown={(e) => e.key === "Enter" && suspender()}
               placeholder="Ej: suspendido por lluvia"
               autoFocus
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 mb-4"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-300 mb-4"
             />
             <div className="flex gap-2">
               <button
