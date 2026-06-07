@@ -8,8 +8,9 @@ export default async function PartidosPage() {
     orderBy: { fecha: "desc" },
   });
 
-  const pendientes = partidos.filter((p) => p.estado === "pendiente");
-  const jugados    = partidos.filter((p) => p.estado === "jugado" || p.estado === "finalizado");
+  const pendientes   = partidos.filter((p) => p.estado === "pendiente");
+  const jugados      = partidos.filter((p) => p.estado === "jugado" || p.estado === "finalizado");
+  const suspendidos  = partidos.filter((p) => p.estado === "suspendido");
 
   return (
     <div className="space-y-5 max-w-xl">
@@ -34,6 +35,10 @@ export default async function PartidosPage() {
         <PartidosList title="Próximos partidos" partidos={pendientes} />
       )}
 
+      {suspendidos.length > 0 && (
+        <PartidosList title="Partidos suspendidos" partidos={suspendidos} />
+      )}
+
       {jugados.length > 0 && (
         <PartidosList title="Partidos jugados" partidos={jugados} />
       )}
@@ -55,7 +60,8 @@ function PartidosList({ title, partidos }: {
   partidos: Array<{
     id: number; fecha: Date; rival: string; lugar: string | null;
     condicion: string; campeonato: string | null;
-    goles_local: number | null; goles_visita: number | null; estado: string;
+    goles_local: number | null; goles_visita: number | null;
+    estado: string; notas: string | null;
   }>;
 }) {
   return (
@@ -72,9 +78,12 @@ function PartidosList({ title, partidos }: {
       }}>
         {partidos.map((p, i) => {
           const r = (p.estado === "jugado" || p.estado === "finalizado") ? resultadoPartido(p) : null;
-          const esPendiente = p.estado === "pendiente";
+          const esPendiente  = p.estado === "pendiente";
+          const esSuspendido = p.estado === "suspendido";
 
-          const resultConfig = r === "V"
+          const resultConfig = esSuspendido
+            ? { bg: "rgba(249,115,22,0.10)", color: "#EA580C", border: "rgba(249,115,22,0.25)", label: "⏸" }
+            : r === "V"
             ? { bg: "rgba(16,185,129,0.12)", color: "#10B981", border: "rgba(16,185,129,0.3)", label: "V" }
             : r === "E"
             ? { bg: "rgba(245,158,11,0.12)", color: "#F59E0B", border: "rgba(245,158,11,0.3)", label: "E" }
@@ -115,7 +124,7 @@ function PartidosList({ title, partidos }: {
                 {/* Teams */}
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: "#f1f5f9" }}>San Luis</span>
-                  {!esPendiente && sanLuisGoles !== null && rivalGoles !== null && (
+                  {!esPendiente && !esSuspendido && sanLuisGoles !== null && rivalGoles !== null && (
                     <span style={{
                       fontSize: 14, fontWeight: 900, color: resultConfig.color,
                       padding: "1px 6px", borderRadius: 5,
@@ -125,7 +134,7 @@ function PartidosList({ title, partidos }: {
                     </span>
                   )}
                   <span style={{ fontSize: 13, fontWeight: 700, color: "#f1f5f9" }}>
-                    {esPendiente ? "vs" : ""} {p.rival}
+                    {(esPendiente || esSuspendido) ? "vs" : ""} {p.rival}
                   </span>
                 </div>
 
@@ -150,15 +159,26 @@ function PartidosList({ title, partidos }: {
 
                 {/* Estado badge */}
                 <div style={{ marginTop: 4 }}>
-                  <span style={{
-                    fontSize: 9, padding: "2px 7px", borderRadius: 4,
-                    fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase",
-                    background: esPendiente ? "rgba(14,165,233,0.10)" : resultConfig.bg,
-                    color: esPendiente ? "#0EA5E9" : resultConfig.color,
-                    border: `1px solid ${esPendiente ? "rgba(14,165,233,0.25)" : resultConfig.border}`,
-                  }}>
-                    {esPendiente ? "Próximo" : "Finalizado"}
-                  </span>
+                  {esSuspendido ? (
+                    <span style={{
+                      fontSize: 9, padding: "2px 7px", borderRadius: 4,
+                      fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase",
+                      background: "rgba(249,115,22,0.10)", color: "#EA580C",
+                      border: "1px solid rgba(249,115,22,0.25)",
+                    }}>
+                      Suspendido
+                    </span>
+                  ) : (
+                    <span style={{
+                      fontSize: 9, padding: "2px 7px", borderRadius: 4,
+                      fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase",
+                      background: esPendiente ? "rgba(14,165,233,0.10)" : resultConfig.bg,
+                      color: esPendiente ? "#0EA5E9" : resultConfig.color,
+                      border: `1px solid ${esPendiente ? "rgba(14,165,233,0.25)" : resultConfig.border}`,
+                    }}>
+                      {esPendiente ? "Próximo" : "Finalizado"}
+                    </span>
+                  )}
                   {p.campeonato && (
                     <span style={{
                       marginLeft: 6, fontSize: 9, padding: "2px 7px", borderRadius: 4,
@@ -170,6 +190,13 @@ function PartidosList({ title, partidos }: {
                     </span>
                   )}
                 </div>
+
+                {/* Motivo suspensión */}
+                {esSuspendido && p.notas && (
+                  <p style={{ fontSize: 10, color: "#EA580C", marginTop: 3, fontStyle: "italic" }}>
+                    {p.notas}
+                  </p>
+                )}
               </div>
 
               <span style={{ color: "var(--border-bright)", fontSize: 16, flexShrink: 0 }}>›</span>
