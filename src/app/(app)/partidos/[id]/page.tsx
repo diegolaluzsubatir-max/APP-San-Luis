@@ -94,6 +94,14 @@ export default async function PartidoDetallePage({ params }: Props) {
         />
       )}
 
+      {/* Acciones */}
+      <AccionesClient
+        partidoId={partido.id}
+        estado={partido.estado}
+        notas={partido.notas}
+        rival={partido.rival}
+      />
+
       {/* Jugadores convocados */}
       {partido.planificacion.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
