@@ -62,6 +62,15 @@ export default async function PartidoDetallePage({ params }: Props) {
                 {r === "V" ? "Victoria" : r === "E" ? "Empate" : "Derrota"}
               </span>
             </div>
+          ) : partido.estado === "suspendido" ? (
+            <div className="text-right shrink-0">
+              <span className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full font-semibold border border-orange-200">
+                Suspendido
+              </span>
+              {partido.notas && (
+                <p className="text-xs text-orange-500 mt-1 max-w-[140px] text-right">{partido.notas}</p>
+              )}
+            </div>
           ) : (
             <span className="text-xs bg-blue-50 text-[#0047AB] px-2 py-1 rounded-full font-medium">Pendiente</span>
           )}
