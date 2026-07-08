@@ -240,6 +240,17 @@ export default function JugadoresClient({ jugadores }: { jugadores: JugadorListI
             }}>✕</button>
           )}
         </div>
+
+        {/* Botón: nuevo jugador */}
+        <Link href="/jugadores/nuevo" aria-label="Nuevo jugador" style={{
+          flexShrink: 0, display: "flex", alignItems: "center", gap: 6,
+          background: "#0EA5E9", border: "1px solid #0EA5E9", borderRadius: 10,
+          color: "#fff", textDecoration: "none", padding: "0 14px",
+          fontSize: 13, fontWeight: 700, letterSpacing: "0.02em",
+        }}>
+          <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>
+          <span>Nuevo</span>
+        </Link>
       </div>
 
       {/* ── Filtros ─────────────────────────────────────────────── */}

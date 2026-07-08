@@ -27,6 +27,7 @@ function getTitle(pathname: string): string {
 // Rutas de detalle que muestran flecha ← en vez del escudo
 const BACK_ROUTES: [RegExp, string][] = [
   [/^\/(entrenamientos|asistencia)\/\d+/, "/entrenamientos"],
+  [/^\/jugadores\/nuevo$/,                "/jugadores"],
   [/^\/jugadores\/\d+/,                   "/jugadores"],
   [/^\/partidos\/\d+/,                    "/partidos"],
   [/^\/evolucion\/\d+/,                   "/evolucion"],
