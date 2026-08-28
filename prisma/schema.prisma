@@ -18,6 +18,7 @@ model Jugador {
   fecha_nacimiento DateTime?
   fichado          Boolean   @default(false)
   posicion         String?
+  posiciones_sec   String?
   pierna_habil     String?
   estado           String    @default("activo")
   madre_nombre     String?

@@ -10,33 +10,20 @@ export type JugadorListItem = {
   apellido: string;
   numero_camiseta: number | null;
   posicion: string | null;
+  posiciones_sec: string | null;
   fichado: boolean;
   estado: string;
   foto_url: string | null;
-  pct: number | null;
+  pctAnual: number | null;
   goles: number;
   asistencias_stat: number;
 };
 
-function posLabel(pos: string | null): string {
-  if (!pos) return "—";
-  const p = pos.toLowerCase();
-  if (p.includes("arquero"))   return "Arquero";
-  if (p.includes("defensa"))   return "Defensa";
-  if (p.includes("medio"))     return "Mediocampista";
-  if (p.includes("delantero")) return "Delantero";
-  return pos;
-}
+// ── Helpers de posición ─────────────────────────────────────────────────────────
 
-function initials(nombre: string, apellido: string): string {
-  return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
-}
-
-// ── Ordenamiento por posición ──────────────────────────────────────────────────
-
-const POS_ORDER: Record<string, number> = { arquero: 1, defensa: 2, medio: 3, delantero: 4 };
-const POS_LABEL: Record<string, string>  = {
-  arquero: "Arqueros", defensa: "Defensas", medio: "Mediocampistas", delantero: "Delanteros",
+const POS_ORDER: Record<string, number> = { arquero: 1, defensa: 2, medio: 3, delantero: 4, otros: 5 };
+const POS_GROUP: Record<string, string>  = {
+  arquero: "Arqueros", defensa: "Defensas", medio: "Mediocampistas", delantero: "Delanteros", otros: "Otros",
 };
 
 function getPosKey(pos: string | null): string {
@@ -49,142 +36,187 @@ function getPosKey(pos: string | null): string {
   return "otros";
 }
 
-function sortByPos(arr: JugadorListItem[]): JugadorListItem[] {
+function posLabel(pos: string | null): string {
+  const k = getPosKey(pos);
+  if (k === "arquero")   return "Arquero";
+  if (k === "defensa")   return "Defensa";
+  if (k === "medio")     return "Mediocampista";
+  if (k === "delantero") return "Delantero";
+  return pos ?? "—";
+}
+
+// Etiqueta corta para las secundarias
+function posAbrev(pos: string): string {
+  const k = getPosKey(pos);
+  if (k === "arquero")   return "ARQ";
+  if (k === "defensa")   return "DEF";
+  if (k === "medio")     return "MED";
+  if (k === "delantero") return "DEL";
+  return pos.substring(0, 3).toUpperCase();
+}
+
+function parseSec(sec: string | null): string[] {
+  if (!sec) return [];
+  return sec.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+function initials(nombre: string, apellido: string): string {
+  return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
+}
+
+function pctColor(pct: number): string {
+  if (pct >= 85) return "#10B981";
+  if (pct >= 70) return "#F59E0B";
+  return "#EF4444";
+}
+
+// Orden dentro de un grupo: fichados primero, luego por número
+function sortEnGrupo(arr: JugadorListItem[]): JugadorListItem[] {
   return [...arr].sort((a, b) => {
-    const oa = POS_ORDER[getPosKey(a.posicion)] ?? 5;
-    const ob = POS_ORDER[getPosKey(b.posicion)] ?? 5;
-    if (oa !== ob) return oa - ob;
+    if (a.fichado !== b.fichado) return a.fichado ? -1 : 1;
     return (a.numero_camiseta ?? 99) - (b.numero_camiseta ?? 99);
   });
 }
 
-// ── Separador de sección ───────────────────────────────────────────────────────
+// ── Fila de jugador ──────────────────────────────────────────────────────────────
 
-function SeparadorSeccion({ label }: { label: string }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "2px 0" }}>
-      <div style={{ flex: 1, height: 1, background: "#1e2d4a" }} />
-      <span style={{
-        fontSize: 10, fontWeight: 700,
-        color: "rgba(241,245,249,0.3)",
-        letterSpacing: "0.14em", textTransform: "uppercase",
-        whiteSpace: "nowrap",
-      }}>
-        {label}
-      </span>
-      <div style={{ flex: 1, height: 1, background: "#1e2d4a" }} />
-    </div>
-  );
-}
-
-// ── Tarjeta de jugador ─────────────────────────────────────────────────────────
-
-function JugadorCard({ j, dimmed }: { j: JugadorListItem; dimmed?: boolean }) {
+function JugadorRow({ j }: { j: JugadorListItem }) {
+  const dimmed = !j.fichado;
+  const secundarias = parseSec(j.posiciones_sec);
   return (
     <Link
       href={`/jugadores/${j.id}`}
       style={{
         display: "flex",
-        flexDirection: "column",
-        borderRadius: 12,
-        overflow: "hidden",
-        background: "var(--bg-card)",
-        border: "1px solid var(--border)",
+        alignItems: "center",
+        gap: 12,
+        padding: "10px 14px",
         textDecoration: "none",
-        opacity: dimmed ? 0.68 : 1,
-        transition: "border-color 0.15s ease",
+        opacity: dimmed ? 0.6 : 1,
+        transition: "background 0.15s ease",
       }}
-      className="hover:border-[rgba(14,165,233,0.45)] active:scale-[0.97]"
+      className="hover:bg-[rgba(14,165,233,0.06)] active:scale-[0.99]"
     >
-      {/* Foto — cuadrada con padding-bottom trick */}
-      <div style={{ position: "relative", paddingBottom: "100%" }}>
+      {/* Número — pastilla azul */}
+      <div style={{
+        flexShrink: 0,
+        width: 30, height: 30, borderRadius: 8,
+        background: "rgba(0,71,171,0.9)",
+        border: "1px solid rgba(14,165,233,0.5)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 13, fontWeight: 800, color: "#fff",
+        fontVariantNumeric: "tabular-nums",
+      }}>
+        {j.numero_camiseta ?? "—"}
+      </div>
+
+      {/* Foto redonda 44px */}
+      <div style={{ flexShrink: 0, position: "relative", width: 44, height: 44 }}>
         {j.foto_url ? (
           <Image
             src={j.foto_url}
             alt=""
-            fill
-            sizes="(max-width: 1024px) 50vw, 25vw"
-            style={{ objectFit: "cover" }}
+            width={44}
+            height={44}
+            style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover" }}
             loading="lazy"
           />
         ) : (
           <div style={{
-            position: "absolute", inset: 0,
+            width: 44, height: 44, borderRadius: "50%",
             background: "linear-gradient(135deg, rgba(0,47,134,0.85) 0%, rgba(14,165,233,0.45) 100%)",
             display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 15, fontWeight: 800, color: "rgba(255,255,255,0.8)",
+            fontFamily: "'Montserrat', sans-serif",
           }}>
-            <span style={{
-              fontSize: 32, fontWeight: 900,
-              color: "rgba(255,255,255,0.72)",
-              fontFamily: "'Montserrat', sans-serif",
-              letterSpacing: "-0.02em",
-            }}>
-              {initials(j.nombre, j.apellido)}
-            </span>
-          </div>
-        )}
-
-        {/* Número — badge arriba a la izquierda */}
-        {j.numero_camiseta !== null && (
-          <div style={{
-            position: "absolute", top: 6, left: 6,
-            background: "rgba(10,15,30,0.82)",
-            border: "1px solid rgba(14,165,233,0.5)",
-            borderRadius: 6,
-            padding: "2px 7px",
-            fontSize: 12, fontWeight: 800,
-            color: "#0EA5E9", lineHeight: 1.4,
-            fontVariantNumeric: "tabular-nums",
-          }}>
-            {j.numero_camiseta}
-          </div>
-        )}
-
-        {/* Estado — badge arriba a la derecha (solo si no está activo) */}
-        {j.estado !== "activo" && (
-          <div style={{
-            position: "absolute", top: 6, right: 6,
-            background: j.estado === "lesionado" ? "rgba(245,158,11,0.88)" : "rgba(239,68,68,0.88)",
-            borderRadius: 4,
-            padding: "2px 6px",
-            fontSize: 8, fontWeight: 800,
-            color: "#fff",
-            letterSpacing: "0.05em",
-            textTransform: "capitalize" as const,
-          }}>
-            {j.estado}
+            {initials(j.nombre, j.apellido)}
           </div>
         )}
       </div>
 
-      {/* Info debajo de la foto */}
-      <div style={{ padding: "8px 10px 10px" }}>
+      {/* Nombre + posiciones */}
+      <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{
-          fontSize: 13, fontWeight: 700,
-          color: "#f1f5f9", lineHeight: 1.2,
+          fontSize: 14, fontWeight: 700, color: "#f1f5f9", lineHeight: 1.2,
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>
           {j.nombre} {j.apellido}
         </p>
-        <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 3 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3, flexWrap: "wrap" }}>
           <span style={{ fontSize: 11, color: "rgba(241,245,249,0.5)" }}>
             {posLabel(j.posicion)}
           </span>
-          {!j.fichado && (
-            <span style={{
+          {secundarias.map((s) => (
+            <span key={s} style={{
               fontSize: 9, fontWeight: 700,
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "rgba(14,165,233,0.1)",
+              border: "1px solid rgba(14,165,233,0.25)",
               borderRadius: 3, padding: "0 4px",
-              color: "rgba(241,245,249,0.3)",
-              letterSpacing: "0.04em",
+              color: "#0EA5E9", letterSpacing: "0.04em",
             }}>
-              ENT
+              {posAbrev(s)}
+            </span>
+          ))}
+          {j.estado !== "activo" && (
+            <span style={{
+              fontSize: 9, fontWeight: 800,
+              background: j.estado === "lesionado" ? "rgba(245,158,11,0.15)" : "rgba(239,68,68,0.15)",
+              color: j.estado === "lesionado" ? "#F59E0B" : "#EF4444",
+              borderRadius: 3, padding: "0 5px",
+              letterSpacing: "0.04em", textTransform: "capitalize" as const,
+            }}>
+              {j.estado}
             </span>
           )}
         </div>
       </div>
+
+      {/* % asistencia anual */}
+      <div style={{ flexShrink: 0, textAlign: "right", width: 44 }}>
+        {j.pctAnual !== null ? (
+          <span style={{ fontSize: 15, fontWeight: 800, color: pctColor(j.pctAnual), fontVariantNumeric: "tabular-nums" }}>
+            {j.pctAnual}%
+          </span>
+        ) : (
+          <span style={{ fontSize: 12, color: "var(--text-muted)" }}>—</span>
+        )}
+      </div>
+
+      {/* Badge fichado / entrena */}
+      <div style={{ flexShrink: 0 }}>
+        <span style={{
+          fontSize: 8, padding: "2px 6px", borderRadius: 4, fontWeight: 800,
+          letterSpacing: "0.06em",
+          background: j.fichado ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.06)",
+          color: j.fichado ? "#10B981" : "rgba(241,245,249,0.35)",
+          border: `1px solid ${j.fichado ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.1)"}`,
+        }}>
+          {j.fichado ? "FCH" : "ENT"}
+        </span>
+      </div>
     </Link>
+  );
+}
+
+// ── Encabezado de grupo por posición ─────────────────────────────────────────────
+
+function GrupoHeader({ label, count }: { label: string; count: number }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 8,
+      padding: "10px 14px 6px",
+    }}>
+      <span style={{
+        fontSize: 10, fontWeight: 800, color: "#0EA5E9",
+        letterSpacing: "0.12em", textTransform: "uppercase",
+      }}>
+        {label}
+      </span>
+      <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(241,245,249,0.3)" }}>
+        {count}
+      </span>
+      <div style={{ flex: 1, height: 1, background: "#1e2d4a" }} />
+    </div>
   );
 }
 
@@ -198,19 +230,25 @@ export default function JugadoresClient({ jugadores }: { jugadores: JugadorListI
   const filtered = jugadores.filter((j) => {
     const name = `${j.nombre} ${j.apellido} ${j.numero_camiseta ?? ""}`.toLowerCase();
     if (query && !name.includes(query.toLowerCase())) return false;
-    if (filtroPos !== "todos" && !j.posicion?.toLowerCase().includes(filtroPos)) return false;
+    // El filtro por posición mira SOLO la posición principal.
+    if (filtroPos !== "todos" && getPosKey(j.posicion) !== filtroPos) return false;
     if (filtroFich === "fichados"      && !j.fichado) return false;
     if (filtroFich === "entrenamiento" &&  j.fichado) return false;
     return true;
   });
 
-  const fichados   = sortByPos(filtered.filter((j) =>  j.fichado));
-  const noFichados = sortByPos(filtered.filter((j) => !j.fichado));
-  const showSep    = fichados.length > 0 && noFichados.length > 0;
-  const showPosSep = filtroPos === "todos" && !query;
+  // Agrupar por posición principal, en orden ARQ → DEF → MED → DEL → Otros
+  const grupos = (["arquero", "defensa", "medio", "delantero", "otros"] as const)
+    .map((key) => ({
+      key,
+      label: POS_GROUP[key],
+      jugadores: sortEnGrupo(filtered.filter((j) => getPosKey(j.posicion) === key)),
+    }))
+    .filter((g) => g.jugadores.length > 0)
+    .sort((a, b) => POS_ORDER[a.key] - POS_ORDER[b.key]);
 
   return (
-    <div className="space-y-4 max-w-4xl">
+    <div className="space-y-4 max-w-2xl">
 
       {/* ── Buscador ───────────────────────────────────────────── */}
       <div style={{ display: "flex", gap: 8 }}>
@@ -297,51 +335,34 @@ export default function JugadoresClient({ jugadores }: { jugadores: JugadorListI
         {filtered.length} jugador{filtered.length !== 1 ? "es" : ""}
       </p>
 
-      {/* ── Grilla ──────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {filtered.length === 0 ? (
-          <p style={{
-            gridColumn: "1 / -1",
-            padding: "32px 0", textAlign: "center",
-            fontSize: 13, color: "var(--text-muted)",
-          }}>
-            Sin resultados
-          </p>
-        ) : (
-          <>
-            {/* Fichados — con separadores por posición */}
-            {(() => {
-              const items: React.ReactNode[] = [];
-              let lastKey = "";
-              fichados.forEach((j) => {
-                const key = getPosKey(j.posicion);
-                if (showPosSep && key !== lastKey) {
-                  lastKey = key;
-                  items.push(
-                    <div key={`sep-${key}`} style={{ gridColumn: "1 / -1" }}>
-                      <SeparadorSeccion label={`— ${POS_LABEL[key] ?? "Otros"} —`} />
-                    </div>
-                  );
-                }
-                items.push(<JugadorCard key={j.id} j={j} />);
-              });
-              return items;
-            })()}
-
-            {/* Separador "Solo entrenan" */}
-            {showSep && (
-              <div style={{ gridColumn: "1 / -1" }}>
-                <SeparadorSeccion label="Solo entrenan" />
-              </div>
-            )}
-
-            {/* No fichados */}
-            {noFichados.map((j) => (
-              <JugadorCard key={j.id} j={j} dimmed />
-            ))}
-          </>
-        )}
-      </div>
+      {/* ── Listado agrupado ────────────────────────────────────── */}
+      {filtered.length === 0 ? (
+        <p style={{
+          padding: "32px 0", textAlign: "center",
+          fontSize: 13, color: "var(--text-muted)",
+        }}>
+          Sin resultados
+        </p>
+      ) : (
+        <div style={{
+          background: "var(--bg-card)", border: "1px solid var(--border)",
+          borderRadius: 14, overflow: "hidden",
+        }}>
+          {grupos.map((g, gi) => (
+            <div key={g.key}>
+              <GrupoHeader label={g.label} count={g.jugadores.length} />
+              {g.jugadores.map((j, i) => (
+                <div key={j.id} style={{
+                  borderBottom: i < g.jugadores.length - 1 ? "1px solid rgba(30,45,74,0.5)" : "none",
+                }}>
+                  <JugadorRow j={j} />
+                </div>
+              ))}
+              {gi < grupos.length - 1 && <div style={{ height: 6 }} />}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ── Separador CUERPO TÉCNICO ────────────────────────────── */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>

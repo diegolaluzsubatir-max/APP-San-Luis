@@ -54,6 +54,7 @@ export async function PUT(
     const tRel  = (data.tutor_relacion as string) || null;
     const obsG  = (data.obs_generales as string) || null;
     const foto  = (data.foto_url as string) || null;
+    const posSec = (data.posiciones_sec as string) || null;
 
     await prisma.$executeRaw`
       UPDATE "Jugador"
@@ -62,7 +63,8 @@ export async function PUT(
           tutor_telefono = ${tTel},
           tutor_relacion = ${tRel},
           obs_generales  = ${obsG},
-          foto_url       = ${foto}
+          foto_url       = ${foto},
+          posiciones_sec = ${posSec}
       WHERE id = ${jid}
     `;
 

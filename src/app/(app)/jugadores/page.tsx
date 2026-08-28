@@ -3,15 +3,11 @@ import { prisma } from "@/lib/prisma";
 import JugadoresClient, { JugadorListItem } from "./JugadoresClient";
 
 export default async function JugadoresPage() {
-  const hoy = new Date();
-  const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-  const finMes    = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
-
+  // Trae todo el plantel en una sola query, con TODAS las asistencias
+  // (sin filtro de fecha) para poder calcular el % anual en memoria.
   const raw = await prisma.jugador.findMany({
     include: {
-      asistencias: {
-        where: { entrenamiento: { fecha: { gte: inicioMes, lte: finMes } } },
-      },
+      asistencias: true,
       participaciones: true,
     },
     orderBy: [
@@ -20,25 +16,36 @@ export default async function JugadoresPage() {
     ],
   });
 
-  const fotosRaw = await prisma.$queryRaw<{ id: number; foto_url: string | null }[]>`
-    SELECT id, foto_url FROM "Jugador"
+  // foto_url y posiciones_sec se leen por raw (mismo patrón que ya se usaba
+  // para la foto), en una sola consulta para todo el plantel.
+  const extraRaw = await prisma.$queryRaw<
+    { id: number; foto_url: string | null; posiciones_sec: string | null }[]
+  >`
+    SELECT id, foto_url, posiciones_sec FROM "Jugador"
   `;
-  const fotosMap = new Map(fotosRaw.map((f) => [f.id, f.foto_url]));
+  const extraMap = new Map(extraRaw.map((f) => [f.id, f]));
 
   const jugadores: JugadorListItem[] = raw.map((j) => {
-    const total   = j.asistencias.length;
-    const present = j.asistencias.filter((a) => a.estado === "presente" || a.estado === "tardanza").length;
-    const pct     = total > 0 ? Math.round((present / total) * 100) : null;
+    // % anual — misma fórmula que Reportes (columna Anual):
+    // presentes+tardanzas sobre el total de asistencias registradas.
+    const total    = j.asistencias.length;
+    const presentes = j.asistencias.filter(
+      (a) => a.estado === "presente" || a.estado === "tardanza"
+    ).length;
+    const pctAnual = total > 0 ? Math.round((presentes / total) * 100) : null;
+
+    const extra = extraMap.get(j.id);
     return {
       id:               j.id,
       nombre:           j.nombre,
       apellido:         j.apellido,
       numero_camiseta:  j.numero_camiseta,
       posicion:         j.posicion,
+      posiciones_sec:   extra?.posiciones_sec ?? null,
       fichado:          j.fichado,
       estado:           j.estado,
-      foto_url:         fotosMap.get(j.id) ?? null,
-      pct,
+      foto_url:         extra?.foto_url ?? null,
+      pctAnual,
       goles:            j.participaciones.reduce((s, p) => s + p.goles, 0),
       asistencias_stat: j.participaciones.reduce((s, p) => s + p.asistencias_stat, 0),
     };

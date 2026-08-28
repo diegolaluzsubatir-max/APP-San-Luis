@@ -9,6 +9,7 @@ export type JugadorFormData = {
   apellido: string
   numero_camiseta: number | null
   posicion: string | null
+  posiciones_sec: string | null
   pierna_habil: string | null
   estado: string
   fichado: boolean
@@ -36,6 +37,113 @@ export type JugadorFormData = {
 
 export type JugadorFormSetter = <K extends keyof JugadorFormData>(key: K, value: JugadorFormData[K]) => void
 
+// ─── Posiciones (múltiples, con principal) ──────────────────────────────────────
+// Modelo: `posicion` = principal (string); `posiciones_sec` = secundarias en CSV.
+// La UI trabaja con una lista ordenada donde el primer item es la principal.
+
+export const POSICIONES = ["Arquero", "Defensa", "Mediocampista", "Delantero"] as const;
+
+export function posSeleccionadas(form: JugadorFormData): string[] {
+  const sec = (form.posiciones_sec ?? "").split(",").map(s => s.trim()).filter(Boolean);
+  const principal = form.posicion?.trim() || null;
+  const list: string[] = [];
+  if (principal) list.push(principal);
+  for (const s of sec) if (!list.includes(s)) list.push(s);
+  return list;
+}
+
+function aplicarPos(list: string[], setF: JugadorFormSetter) {
+  setF("posicion", list[0] ?? null);
+  setF("posiciones_sec", list.slice(1).join(",") || null);
+}
+
+export function PosicionesPicker({ form, setF }: { form: JugadorFormData; setF: JugadorFormSetter }) {
+  const sel = posSeleccionadas(form);
+
+  function toggle(pos: string) {
+    if (sel.includes(pos)) aplicarPos(sel.filter(p => p !== pos), setF);
+    else aplicarPos([...sel, pos], setF);
+  }
+  function setPrincipal(pos: string) {
+    if (!sel.includes(pos)) return;
+    aplicarPos([pos, ...sel.filter(p => p !== pos)], setF);
+  }
+
+  return (
+    <div>
+      <p style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 6 }}>
+        Posiciones <span style={{ color: "rgba(241,245,249,0.35)" }}>· marcá la principal con la estrella</span>
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {POSICIONES.map((pos) => {
+          const checked   = sel.includes(pos);
+          const principal = checked && sel[0] === pos;
+          return (
+            <div key={pos} style={{
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "7px 10px", borderRadius: 8,
+              background: checked ? "rgba(14,165,233,0.08)" : "var(--bg-card-2)",
+              border: `1px solid ${checked ? "rgba(14,165,233,0.35)" : "var(--border)"}`,
+            }}>
+              {/* Checkbox */}
+              <button type="button" onClick={() => toggle(pos)} style={{
+                flexShrink: 0, width: 18, height: 18, borderRadius: 5, cursor: "pointer",
+                background: checked ? "#0EA5E9" : "transparent",
+                border: `1px solid ${checked ? "#0EA5E9" : "rgba(241,245,249,0.3)"}`,
+                display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
+              }}>
+                {checked && (
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 12l4 4L19 6" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </button>
+
+              {/* Etiqueta (toca = toggle) */}
+              <button type="button" onClick={() => toggle(pos)} style={{
+                flex: 1, textAlign: "left", background: "transparent", border: "none", cursor: "pointer",
+                fontSize: 13, fontWeight: checked ? 700 : 500,
+                color: checked ? "#f1f5f9" : "var(--text-secondary)", padding: 0,
+              }}>
+                {pos}
+              </button>
+
+              {/* Marcar principal */}
+              {checked && (
+                principal ? (
+                  <span style={{
+                    display: "flex", alignItems: "center", gap: 4,
+                    fontSize: 9, fontWeight: 800, letterSpacing: "0.06em",
+                    color: "#0EA5E9",
+                  }}>
+                    <Estrella filled /> PRINCIPAL
+                  </span>
+                ) : (
+                  <button type="button" onClick={() => setPrincipal(pos)} aria-label="Marcar como principal"
+                    style={{ background: "transparent", border: "none", cursor: "pointer", padding: 2, display: "flex" }}>
+                    <Estrella />
+                  </button>
+                )
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function Estrella({ filled }: { filled?: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24"
+      fill={filled ? "#0EA5E9" : "none"}
+      stroke={filled ? "#0EA5E9" : "rgba(241,245,249,0.4)"} strokeWidth="2">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 6.91-1.01L12 2z"
+        strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 // Formulario vacío para el alta. Solo nombre y apellido son obligatorios;
 // todo lo demás puede quedar vacío y completarse después.
 export function emptyJugadorForm(): JugadorFormData {
@@ -44,6 +152,7 @@ export function emptyJugadorForm(): JugadorFormData {
     apellido: "",
     numero_camiseta: null,
     posicion: null,
+    posiciones_sec: null,
     pierna_habil: null,
     estado: "activo",
     fichado: false,
@@ -85,13 +194,6 @@ export function JugadorIdentityFields({ form, setF }: { form: JugadorFormData; s
           <DarkInput value={form.numero_camiseta?.toString() ?? ""} type="number" placeholder="#"
             style={{ width: 64 }}
             onChange={(v: string) => setF("numero_camiseta", v === "" ? null : parseInt(v))} />
-          <DarkSelect value={form.posicion ?? ""} onChange={v => setF("posicion", v || null)}>
-            <option value="">Posición</option>
-            <option>Arquero</option>
-            <option>Defensa</option>
-            <option>Mediocampista</option>
-            <option>Delantero</option>
-          </DarkSelect>
           <DarkSelect value={form.pierna_habil ?? ""} onChange={v => setF("pierna_habil", v || null)}>
             <option value="">Pierna</option>
             <option>Derecha</option>
@@ -104,6 +206,7 @@ export function JugadorIdentityFields({ form, setF }: { form: JugadorFormData; s
             <option value="inactivo">Inactivo</option>
           </DarkSelect>
         </div>
+        <PosicionesPicker form={form} setF={setF} />
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Fichado:</span>
           <Toggle value={form.fichado} onChange={v => setF("fichado", v)} />

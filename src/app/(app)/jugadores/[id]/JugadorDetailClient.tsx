@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { fmtFecha, estadoDocumento } from "@/lib/utils";
 import {
-  JugadorFormData, JugadorFormSections,
+  JugadorFormData, JugadorFormSections, PosicionesPicker,
   DarkSection, DF, DarkInput, DarkSelect, DarkBtn, Badge, Toggle,
 } from "@/components/JugadorForm";
 
@@ -239,13 +239,6 @@ export default function JugadorDetailClient({
                   <DarkInput value={form.numero_camiseta?.toString() ?? ""} type="number" placeholder="#"
                     style={{ width: 64 }}
                     onChange={(v: string) => setF("numero_camiseta", v === "" ? null : parseInt(v))} />
-                  <DarkSelect value={form.posicion ?? ""} onChange={v => setF("posicion", v || null)}>
-                    <option value="">Posición</option>
-                    <option>Arquero</option>
-                    <option>Defensa</option>
-                    <option>Mediocampista</option>
-                    <option>Delantero</option>
-                  </DarkSelect>
                   <DarkSelect value={form.pierna_habil ?? ""} onChange={v => setF("pierna_habil", v || null)}>
                     <option value="">Pierna</option>
                     <option>Derecha</option>
@@ -258,6 +251,7 @@ export default function JugadorDetailClient({
                     <option value="inactivo">Inactivo</option>
                   </DarkSelect>
                 </div>
+                <PosicionesPicker form={form} setF={setF} />
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Fichado:</span>
                   <Toggle value={form.fichado} onChange={v => setF("fichado", v)} />
@@ -281,6 +275,9 @@ export default function JugadorDetailClient({
                         {j.fichado ? "Fichado" : "Entrena"}
                       </Badge>
                       {j.posicion && <Badge color="#0EA5E9">{posAbrev(j.posicion)}</Badge>}
+                      {(j.posiciones_sec ?? "").split(",").map(s => s.trim()).filter(Boolean).map(s => (
+                        <Badge key={s} color="rgba(14,165,233,0.55)">{posAbrev(s)}</Badge>
+                      ))}
                       {j.pierna_habil && <Badge color="rgba(241,245,249,0.4)">{j.pierna_habil[0]}D</Badge>}
                       {j.estado !== "activo" && (
                         <Badge color={j.estado === "lesionado" ? "#F59E0B" : "#EF4444"}>

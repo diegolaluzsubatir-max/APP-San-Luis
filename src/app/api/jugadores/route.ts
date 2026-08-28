@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
     const tTel = (data.tutor_telefono as string) || null;
     const tRel = (data.tutor_relacion as string) || null;
     const obsG = (data.obs_generales as string) || null;
+    const posSec = (data.posiciones_sec as string) || null;
 
     await prisma.$executeRaw`
       UPDATE "Jugador"
@@ -62,7 +63,8 @@ export async function POST(req: NextRequest) {
           tutor_nombre   = ${tNom},
           tutor_telefono = ${tTel},
           tutor_relacion = ${tRel},
-          obs_generales  = ${obsG}
+          obs_generales  = ${obsG},
+          posiciones_sec = ${posSec}
       WHERE id = ${jid}
     `;
 
