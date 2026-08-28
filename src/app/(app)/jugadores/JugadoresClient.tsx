@@ -70,12 +70,16 @@ function pctColor(pct: number): string {
   return "#EF4444";
 }
 
-// Orden dentro de un grupo: fichados primero, luego por número
-function sortEnGrupo(arr: JugadorListItem[]): JugadorListItem[] {
-  return [...arr].sort((a, b) => {
-    if (a.fichado !== b.fichado) return a.fichado ? -1 : 1;
-    return (a.numero_camiseta ?? 99) - (b.numero_camiseta ?? 99);
-  });
+// Orden dentro de un grupo de posición: por número de camiseta
+function sortPorNumero(arr: JugadorListItem[]): JugadorListItem[] {
+  return [...arr].sort((a, b) => (a.numero_camiseta ?? 99) - (b.numero_camiseta ?? 99));
+}
+
+// Orden de la sección "Solo entrenan": por apellido
+function sortPorApellido(arr: JugadorListItem[]): JugadorListItem[] {
+  return [...arr].sort((a, b) =>
+    a.apellido.localeCompare(b.apellido, "es", { sensitivity: "base" })
+  );
 }
 
 // ── Fila de jugador ──────────────────────────────────────────────────────────────
@@ -90,7 +94,7 @@ function JugadorRow({ j }: { j: JugadorListItem }) {
         display: "flex",
         alignItems: "center",
         gap: 12,
-        padding: "10px 14px",
+        padding: "12px 14px",
         textDecoration: "none",
         opacity: dimmed ? 0.6 : 1,
         transition: "background 0.15s ease",
@@ -110,23 +114,23 @@ function JugadorRow({ j }: { j: JugadorListItem }) {
         {j.numero_camiseta ?? "—"}
       </div>
 
-      {/* Foto redonda 44px */}
-      <div style={{ flexShrink: 0, position: "relative", width: 44, height: 44 }}>
+      {/* Foto redonda 64px */}
+      <div style={{ flexShrink: 0, position: "relative", width: 64, height: 64 }}>
         {j.foto_url ? (
           <Image
             src={j.foto_url}
             alt=""
-            width={44}
-            height={44}
-            style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover" }}
+            width={64}
+            height={64}
+            style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover" }}
             loading="lazy"
           />
         ) : (
           <div style={{
-            width: 44, height: 44, borderRadius: "50%",
+            width: 64, height: 64, borderRadius: "50%",
             background: "linear-gradient(135deg, rgba(0,47,134,0.85) 0%, rgba(14,165,233,0.45) 100%)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 15, fontWeight: 800, color: "rgba(255,255,255,0.8)",
+            fontSize: 22, fontWeight: 800, color: "rgba(255,255,255,0.8)",
             fontFamily: "'Montserrat', sans-serif",
           }}>
             {initials(j.nombre, j.apellido)}
@@ -237,15 +241,19 @@ export default function JugadoresClient({ jugadores }: { jugadores: JugadorListI
     return true;
   });
 
-  // Agrupar por posición principal, en orden ARQ → DEF → MED → DEL → Otros
+  // Solo los FICHADOS se agrupan por posición principal (ARQ → DEF → MED → DEL → Otros).
+  const fichados = filtered.filter((j) => j.fichado);
   const grupos = (["arquero", "defensa", "medio", "delantero", "otros"] as const)
     .map((key) => ({
       key,
       label: POS_GROUP[key],
-      jugadores: sortEnGrupo(filtered.filter((j) => getPosKey(j.posicion) === key)),
+      jugadores: sortPorNumero(fichados.filter((j) => getPosKey(j.posicion) === key)),
     }))
     .filter((g) => g.jugadores.length > 0)
     .sort((a, b) => POS_ORDER[a.key] - POS_ORDER[b.key]);
+
+  // Los NO fichados van juntos al final, ordenados por apellido.
+  const soloEntrenan = sortPorApellido(filtered.filter((j) => !j.fichado));
 
   return (
     <div className="space-y-4 max-w-2xl">
@@ -348,7 +356,7 @@ export default function JugadoresClient({ jugadores }: { jugadores: JugadorListI
           background: "var(--bg-card)", border: "1px solid var(--border)",
           borderRadius: 14, overflow: "hidden",
         }}>
-          {grupos.map((g, gi) => (
+          {grupos.map((g) => (
             <div key={g.key}>
               <GrupoHeader label={g.label} count={g.jugadores.length} />
               {g.jugadores.map((j, i) => (
@@ -358,9 +366,23 @@ export default function JugadoresClient({ jugadores }: { jugadores: JugadorListI
                   <JugadorRow j={j} />
                 </div>
               ))}
-              {gi < grupos.length - 1 && <div style={{ height: 6 }} />}
+              <div style={{ height: 6 }} />
             </div>
           ))}
+
+          {/* Sección "Solo entrenan" — todos los no fichados juntos al final */}
+          {soloEntrenan.length > 0 && (
+            <div>
+              <GrupoHeader label="Solo entrenan" count={soloEntrenan.length} />
+              {soloEntrenan.map((j, i) => (
+                <div key={j.id} style={{
+                  borderBottom: i < soloEntrenan.length - 1 ? "1px solid rgba(30,45,74,0.5)" : "none",
+                }}>
+                  <JugadorRow j={j} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
