@@ -90,6 +90,79 @@ function sortPorApellido(arr: JugadorListItem[]): JugadorListItem[] {
   );
 }
 
+// ── Exportación a Excel ────────────────────────────────────────────────────────
+
+function capitalizar(s: string): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+
+// Columnas del Excel: [encabezado, valor por jugador]
+const COLUMNAS_EXCEL: { header: string; value: (j: JugadorListItem) => string | number }[] = [
+  { header: "Cédula",              value: (j) => j.cedula ?? "" },
+  { header: "Nombres",             value: (j) => j.nombre },
+  { header: "Apellidos",           value: (j) => j.apellido },
+  { header: "N° camiseta",         value: (j) => j.numero_camiseta ?? "" },
+  { header: "Posición",            value: (j) => posLabel(j.posicion) },
+  { header: "Estado",              value: (j) => capitalizar(j.estado) },
+  { header: "Fichado",             value: (j) => (j.fichado ? "Sí" : "No") },
+  { header: "Nombre del padre",    value: (j) => j.padre_nombre ?? "" },
+  { header: "Tel. padre",          value: (j) => j.padre_telefono ?? "" },
+  { header: "Nombre de la madre",  value: (j) => j.madre_nombre ?? "" },
+  { header: "Tel. madre",          value: (j) => j.madre_telefono ?? "" },
+  { header: "Fecha de nacimiento", value: (j) => j.fecha_nacimiento ?? "" },
+  { header: "Vencimiento cédula",  value: (j) => j.ci_vencimiento ?? "" },
+];
+
+async function exportarExcel(rows: JugadorListItem[]) {
+  const XLSX = await import("xlsx-js-style");
+
+  // Ordenado por apellido y luego por nombre (esta app es una sola categoría).
+  const ordenados = [...rows].sort((a, b) => {
+    const ap = a.apellido.localeCompare(b.apellido, "es", { sensitivity: "base" });
+    return ap !== 0 ? ap : a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+  });
+
+  const headers = COLUMNAS_EXCEL.map((c) => c.header);
+  const aoa: (string | number)[][] = [
+    headers,
+    ...ordenados.map((j) => COLUMNAS_EXCEL.map((c) => c.value(j))),
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+  // Estilo del encabezado: negrita, texto blanco, fondo azul #0B4EA2
+  const headerStyle = {
+    font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+    fill: { patternType: "solid", fgColor: { rgb: "0B4EA2" } },
+    alignment: { horizontal: "center", vertical: "center" },
+  };
+  for (let c = 0; c < headers.length; c++) {
+    const ref = XLSX.utils.encode_cell({ r: 0, c });
+    if (ws[ref]) ws[ref].s = headerStyle;
+  }
+
+  // Anchos de columna ajustados al contenido
+  ws["!cols"] = COLUMNAS_EXCEL.map((col, c) => {
+    const maxLen = aoa.reduce((m, row) => {
+      const v = row[c];
+      return Math.max(m, v == null ? 0 : String(v).length);
+    }, 0);
+    return { wch: Math.min(Math.max(maxLen + 2, 10), 40) };
+  });
+
+  // Congelar la fila de encabezado
+  ws["!freeze"] = { xSplit: "0", ySplit: "1" };
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Jugadores");
+
+  const hoy = new Date();
+  const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(
+    hoy.getDate()
+  ).padStart(2, "0")}`;
+  XLSX.writeFile(wb, `Jugadores_San_Luis_${fecha}.xlsx`);
+}
+
 // ── Fila de jugador ──────────────────────────────────────────────────────────────
 
 function JugadorRow({ j }: { j: JugadorListItem }) {
