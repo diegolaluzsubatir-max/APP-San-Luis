@@ -436,6 +436,45 @@ export default function JugadoresClient({ jugadores }: { jugadores: JugadorListI
         ))}
       </div>
 
+      {/* ── Exportar a Excel ────────────────────────────────────── */}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <button
+          onClick={() => handleExport(filtered)}
+          disabled={exportando || filtered.length === 0}
+          style={{
+            display: "flex", alignItems: "center", gap: 6,
+            background: "#0B4EA2", border: "1px solid #0B4EA2", borderRadius: 8,
+            color: "#fff", padding: "6px 12px",
+            fontSize: 12, fontWeight: 700, letterSpacing: "0.02em",
+            cursor: exportando || filtered.length === 0 ? "default" : "pointer",
+            opacity: exportando || filtered.length === 0 ? 0.55 : 1,
+            transition: "opacity 0.15s ease",
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+            <path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          <span>{exportando ? "Generando…" : "Exportar Excel"}</span>
+        </button>
+
+        {hayFiltros && (
+          <button
+            onClick={() => handleExport(jugadores)}
+            disabled={exportando}
+            style={{
+              background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 8,
+              color: "var(--text-muted)", padding: "6px 12px",
+              fontSize: 12, fontWeight: 700, letterSpacing: "0.02em",
+              cursor: exportando ? "default" : "pointer",
+              opacity: exportando ? 0.55 : 1,
+            }}
+          >
+            Exportar todos ({jugadores.length})
+          </button>
+        )}
+      </div>
+
       {/* Contador */}
       <p style={{ fontSize: 11, color: "var(--text-muted)" }}>
         {filtered.length} jugador{filtered.length !== 1 ? "es" : ""}
