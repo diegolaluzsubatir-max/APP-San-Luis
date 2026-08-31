@@ -337,6 +337,22 @@ export default function JugadoresClient({ jugadores }: { jugadores: JugadorListI
   // Los NO fichados van juntos al final, ordenados por apellido.
   const soloEntrenan = sortPorApellido(filtered.filter((j) => !j.fichado));
 
+  // ¿Hay algún filtro/búsqueda activo? (define si "Exportar todos" aporta algo)
+  const hayFiltros = query.trim() !== "" || filtroPos !== "todos" || filtroFich !== "todos";
+
+  async function handleExport(rows: JugadorListItem[]) {
+    if (exportando || rows.length === 0) return;
+    setExportando(true);
+    try {
+      await exportarExcel(rows);
+    } catch (e) {
+      console.error("Error al exportar Excel:", e);
+      alert("No se pudo generar el Excel. Intentá de nuevo.");
+    } finally {
+      setExportando(false);
+    }
+  }
+
   return (
     <div className="space-y-4 max-w-2xl">
 
