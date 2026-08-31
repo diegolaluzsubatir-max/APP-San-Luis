@@ -25,6 +25,15 @@ export default async function JugadoresPage() {
   `;
   const extraMap = new Map(extraRaw.map((f) => [f.id, f]));
 
+  // Fecha en dd/mm/aaaa usando getters UTC (las fechas se guardan a medianoche
+  // UTC; los getters locales podían correr el día).
+  const fmtFecha = (d: Date | null): string | null =>
+    d
+      ? `${String(d.getUTCDate()).padStart(2, "0")}/${String(
+          d.getUTCMonth() + 1
+        ).padStart(2, "0")}/${d.getUTCFullYear()}`
+      : null;
+
   const jugadores: JugadorListItem[] = raw.map((j) => {
     // % anual — misma fórmula que Reportes (columna Anual):
     // presentes+tardanzas sobre el total de asistencias registradas.
