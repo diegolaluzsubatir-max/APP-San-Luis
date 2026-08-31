@@ -311,6 +311,7 @@ export default function JugadoresClient({ jugadores }: { jugadores: JugadorListI
   const [query,      setQuery]      = useState("");
   const [filtroPos,  setFiltroPos]  = useState<string>("todos");
   const [filtroFich, setFiltroFich] = useState<string>("todos");
+  const [exportando, setExportando] = useState(false);
 
   const filtered = jugadores.filter((j) => {
     const name = `${j.nombre} ${j.apellido} ${j.numero_camiseta ?? ""}`.toLowerCase();
