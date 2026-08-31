@@ -17,14 +17,6 @@ export type JugadorListItem = {
   pctAnual: number | null;
   goles: number;
   asistencias_stat: number;
-  // Campos extra para exportación a Excel
-  cedula: string | null;
-  padre_nombre: string | null;
-  padre_telefono: string | null;
-  madre_nombre: string | null;
-  madre_telefono: string | null;
-  fecha_nacimiento: string | null;
-  ci_vencimiento: string | null;
 };
 
 // ── Helpers de posición ─────────────────────────────────────────────────────────
@@ -88,76 +80,6 @@ function sortPorApellido(arr: JugadorListItem[]): JugadorListItem[] {
   return [...arr].sort((a, b) =>
     a.apellido.localeCompare(b.apellido, "es", { sensitivity: "base" })
   );
-}
-
-// ── Exportación a Excel ────────────────────────────────────────────────────────
-
-function capitalizar(s: string): string {
-  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
-}
-
-// Columnas del Excel: [encabezado, valor por jugador]
-const COLUMNAS_EXCEL: { header: string; value: (j: JugadorListItem) => string | number }[] = [
-  { header: "Cédula",              value: (j) => j.cedula ?? "" },
-  { header: "Nombres",             value: (j) => j.nombre },
-  { header: "Apellidos",           value: (j) => j.apellido },
-  { header: "N° camiseta",         value: (j) => j.numero_camiseta ?? "" },
-  { header: "Posición",            value: (j) => posLabel(j.posicion) },
-  { header: "Estado",              value: (j) => capitalizar(j.estado) },
-  { header: "Fichado",             value: (j) => (j.fichado ? "Sí" : "No") },
-  { header: "Nombre del padre",    value: (j) => j.padre_nombre ?? "" },
-  { header: "Tel. padre",          value: (j) => j.padre_telefono ?? "" },
-  { header: "Nombre de la madre",  value: (j) => j.madre_nombre ?? "" },
-  { header: "Tel. madre",          value: (j) => j.madre_telefono ?? "" },
-  { header: "Fecha de nacimiento", value: (j) => j.fecha_nacimiento ?? "" },
-  { header: "Vencimiento cédula",  value: (j) => j.ci_vencimiento ?? "" },
-];
-
-async function exportarExcel(rows: JugadorListItem[]) {
-  const XLSX = await import("xlsx-js-style");
-
-  // Ordenado por apellido y luego por nombre (esta app es una sola categoría).
-  const ordenados = [...rows].sort((a, b) => {
-    const ap = a.apellido.localeCompare(b.apellido, "es", { sensitivity: "base" });
-    return ap !== 0 ? ap : a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-  });
-
-  const headers = COLUMNAS_EXCEL.map((c) => c.header);
-  const aoa: (string | number)[][] = [
-    headers,
-    ...ordenados.map((j) => COLUMNAS_EXCEL.map((c) => c.value(j))),
-  ];
-
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
-
-  // Estilo del encabezado: negrita, texto blanco, fondo azul #0B4EA2
-  const headerStyle = {
-    font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
-    fill: { patternType: "solid", fgColor: { rgb: "0B4EA2" } },
-    alignment: { horizontal: "center", vertical: "center" },
-  };
-  for (let c = 0; c < headers.length; c++) {
-    const ref = XLSX.utils.encode_cell({ r: 0, c });
-    if (ws[ref]) ws[ref].s = headerStyle;
-  }
-
-  // Anchos de columna ajustados al contenido
-  ws["!cols"] = COLUMNAS_EXCEL.map((col, c) => {
-    const maxLen = aoa.reduce((m, row) => {
-      const v = row[c];
-      return Math.max(m, v == null ? 0 : String(v).length);
-    }, 0);
-    return { wch: Math.min(Math.max(maxLen + 2, 10), 40) };
-  });
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Jugadores");
-
-  const hoy = new Date();
-  const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(
-    hoy.getDate()
-  ).padStart(2, "0")}`;
-  XLSX.writeFile(wb, `Jugadores_San_Luis_${fecha}.xlsx`);
 }
 
 // ── Fila de jugador ──────────────────────────────────────────────────────────────
@@ -308,7 +230,6 @@ export default function JugadoresClient({ jugadores }: { jugadores: JugadorListI
   const [query,      setQuery]      = useState("");
   const [filtroPos,  setFiltroPos]  = useState<string>("todos");
   const [filtroFich, setFiltroFich] = useState<string>("todos");
-  const [exportando, setExportando] = useState(false);
 
   const filtered = jugadores.filter((j) => {
     const name = `${j.nombre} ${j.apellido} ${j.numero_camiseta ?? ""}`.toLowerCase();
@@ -333,22 +254,6 @@ export default function JugadoresClient({ jugadores }: { jugadores: JugadorListI
 
   // Los NO fichados van juntos al final, ordenados por apellido.
   const soloEntrenan = sortPorApellido(filtered.filter((j) => !j.fichado));
-
-  // ¿Hay algún filtro/búsqueda activo? (define si "Exportar todos" aporta algo)
-  const hayFiltros = query.trim() !== "" || filtroPos !== "todos" || filtroFich !== "todos";
-
-  async function handleExport(rows: JugadorListItem[]) {
-    if (exportando || rows.length === 0) return;
-    setExportando(true);
-    try {
-      await exportarExcel(rows);
-    } catch (e) {
-      console.error("Error al exportar Excel:", e);
-      alert("No se pudo generar el Excel. Intentá de nuevo.");
-    } finally {
-      setExportando(false);
-    }
-  }
 
   return (
     <div className="space-y-4 max-w-2xl">
@@ -431,45 +336,6 @@ export default function JugadoresClient({ jugadores }: { jugadores: JugadorListI
             {label}
           </button>
         ))}
-      </div>
-
-      {/* ── Exportar a Excel ────────────────────────────────────── */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-        <button
-          onClick={() => handleExport(filtered)}
-          disabled={exportando || filtered.length === 0}
-          style={{
-            display: "flex", alignItems: "center", gap: 6,
-            background: "#0B4EA2", border: "1px solid #0B4EA2", borderRadius: 8,
-            color: "#fff", padding: "6px 12px",
-            fontSize: 12, fontWeight: 700, letterSpacing: "0.02em",
-            cursor: exportando || filtered.length === 0 ? "default" : "pointer",
-            opacity: exportando || filtered.length === 0 ? 0.55 : 1,
-            transition: "opacity 0.15s ease",
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-            <path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-          <span>{exportando ? "Generando…" : "Exportar Excel"}</span>
-        </button>
-
-        {hayFiltros && (
-          <button
-            onClick={() => handleExport(jugadores)}
-            disabled={exportando}
-            style={{
-              background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 8,
-              color: "var(--text-muted)", padding: "6px 12px",
-              fontSize: 12, fontWeight: 700, letterSpacing: "0.02em",
-              cursor: exportando ? "default" : "pointer",
-              opacity: exportando ? 0.55 : 1,
-            }}
-          >
-            Exportar todos ({jugadores.length})
-          </button>
-        )}
       </div>
 
       {/* Contador */}

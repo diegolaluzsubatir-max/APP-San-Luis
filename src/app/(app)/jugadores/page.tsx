@@ -25,15 +25,6 @@ export default async function JugadoresPage() {
   `;
   const extraMap = new Map(extraRaw.map((f) => [f.id, f]));
 
-  // Fecha en dd/mm/aaaa usando getters UTC (las fechas se guardan a medianoche
-  // UTC; los getters locales podían correr el día).
-  const fmtFecha = (d: Date | null): string | null =>
-    d
-      ? `${String(d.getUTCDate()).padStart(2, "0")}/${String(
-          d.getUTCMonth() + 1
-        ).padStart(2, "0")}/${d.getUTCFullYear()}`
-      : null;
-
   const jugadores: JugadorListItem[] = raw.map((j) => {
     // % anual — misma fórmula que Reportes (columna Anual):
     // presentes+tardanzas sobre el total de asistencias registradas.
@@ -57,14 +48,6 @@ export default async function JugadoresPage() {
       pctAnual,
       goles:            j.participaciones.reduce((s, p) => s + p.goles, 0),
       asistencias_stat: j.participaciones.reduce((s, p) => s + p.asistencias_stat, 0),
-      // Campos extra para exportación a Excel
-      cedula:           j.cedula,
-      padre_nombre:     j.padre_nombre,
-      padre_telefono:   j.padre_telefono,
-      madre_nombre:     j.madre_nombre,
-      madre_telefono:   j.madre_telefono,
-      fecha_nacimiento: fmtFecha(j.fecha_nacimiento),
-      ci_vencimiento:   fmtFecha(j.ci_vencimiento),
     };
   });
 
