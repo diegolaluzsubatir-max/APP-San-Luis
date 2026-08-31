@@ -150,9 +150,6 @@ async function exportarExcel(rows: JugadorListItem[]) {
     return { wch: Math.min(Math.max(maxLen + 2, 10), 40) };
   });
 
-  // Congelar la fila de encabezado
-  ws["!freeze"] = { xSplit: "0", ySplit: "1" };
-
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Jugadores");
 
