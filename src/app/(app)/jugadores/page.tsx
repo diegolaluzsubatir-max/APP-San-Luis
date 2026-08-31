@@ -57,6 +57,14 @@ export default async function JugadoresPage() {
       pctAnual,
       goles:            j.participaciones.reduce((s, p) => s + p.goles, 0),
       asistencias_stat: j.participaciones.reduce((s, p) => s + p.asistencias_stat, 0),
+      // Campos extra para exportación a Excel
+      cedula:           j.cedula,
+      padre_nombre:     j.padre_nombre,
+      padre_telefono:   j.padre_telefono,
+      madre_nombre:     j.madre_nombre,
+      madre_telefono:   j.madre_telefono,
+      fecha_nacimiento: fmtFecha(j.fecha_nacimiento),
+      ci_vencimiento:   fmtFecha(j.ci_vencimiento),
     };
   });
 
