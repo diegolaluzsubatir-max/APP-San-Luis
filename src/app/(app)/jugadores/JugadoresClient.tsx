@@ -17,6 +17,14 @@ export type JugadorListItem = {
   pctAnual: number | null;
   goles: number;
   asistencias_stat: number;
+  // Campos extra para exportación a Excel
+  cedula: string | null;
+  padre_nombre: string | null;
+  padre_telefono: string | null;
+  madre_nombre: string | null;
+  madre_telefono: string | null;
+  fecha_nacimiento: string | null;
+  ci_vencimiento: string | null;
 };
 
 // ── Helpers de posición ─────────────────────────────────────────────────────────
