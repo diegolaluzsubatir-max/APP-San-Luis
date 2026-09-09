@@ -41,6 +41,7 @@ model Jugador {
   participaciones  ParticipacionPartido[]
   asistencias      AsistenciaEntrenamiento[]
   evaluaciones     Evaluacion[]
+  charlas          Charla[]
 }
 
 model Partido {
@@ -138,3 +139,14 @@ model Nota {
   actualizado DateTime @updatedAt
 }
 
+model Charla {
+  id        Int      @id @default(autoincrement())
+  jugador   Jugador  @relation(fields: [jugadorId], references: [id])
+  jugadorId Int
+  fecha     DateTime
+  etiqueta  String?
+  temas     String   @default("[]")
+  creado_en DateTime @default(now())
+
+  @@index([jugadorId])
+}
