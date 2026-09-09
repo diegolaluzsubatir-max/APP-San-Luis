@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import JugadorDetailClient, { JugadorEditable, Stats } from "./JugadorDetailClient";
+import { getCharlasDeJugador } from "@/lib/charlas";
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -18,10 +19,12 @@ export default async function JugadorPage({ params }: Props) {
         include: { entrenamiento: true },
         orderBy: { entrenamiento: { fecha: "desc" } },
       },
-      evaluaciones: { orderBy: { fecha: "asc" } },
     },
   });
   if (!j) notFound();
+
+  // Charlas individuales DT-jugador (tabla nueva, lectura vía raw), más reciente primero
+  const charlas = await getCharlasDeJugador(jugadorId);
 
   // ── Compute stats ──────────────────────────────────────────────────────────
   const hoy = new Date();
@@ -46,8 +49,6 @@ export default async function JugadorPage({ params }: Props) {
     if (a.estado === "presente" || a.estado === "tardanza") meses[m].presentes++;
   }
 
-  const ultimaEval = j.evaluaciones.at(-1) ?? null;
-
   const stats: Stats = {
     partidos:      j.participaciones.length,
     goles:         j.participaciones.reduce((s, p) => s + p.goles, 0),
@@ -56,13 +57,11 @@ export default async function JugadorPage({ params }: Props) {
     pctMes,
     pctAnual,
     meses,
-    ultimaEval:      ultimaEval ? JSON.parse(JSON.stringify(ultimaEval)) : null,
-    ultimaEvalFecha: ultimaEval?.fecha?.toISOString() ?? null,
   };
 
   // ── Serialize jugador (strip relations) ────────────────────────────────────
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { participaciones, asistencias, evaluaciones, ...raw } = j as typeof j & {
+  const { participaciones, asistencias, ...raw } = j as typeof j & {
     direccion?: string | null
     tutor_nombre?: string | null
     tutor_telefono?: string | null
@@ -72,5 +71,5 @@ export default async function JugadorPage({ params }: Props) {
   };
   const jugador: JugadorEditable = JSON.parse(JSON.stringify(raw));
 
-  return <JugadorDetailClient jugador={jugador} stats={stats} />;
+  return <JugadorDetailClient jugador={jugador} stats={stats} charlas={charlas} />;
 }
