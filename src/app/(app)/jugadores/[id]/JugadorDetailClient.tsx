@@ -7,6 +7,8 @@ import {
   JugadorFormData, JugadorFormSections, PosicionesPicker,
   DarkSection, DF, DarkInput, DarkSelect, DarkBtn, Badge, Toggle,
 } from "@/components/JugadorForm";
+import CharlasTab from "./CharlasTab";
+import type { CharlaRow } from "@/lib/charlas-types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,24 +23,7 @@ export type Stats = {
   pctMes: number | null
   pctAnual: number | null
   meses: Record<string, { total: number; presentes: number }>
-  ultimaEval: Record<string, number | string | null> | null
-  ultimaEvalFecha: string | null
 }
-
-type EvalKey = "conducta"|"compromiso"|"respeto"|"companerismo"|"control_balon"|"pase"|"recepcion"|"definicion"|"comprension_tactica"|"velocidad"|"coordinacion"
-const EVAL_LABELS: [EvalKey, string, string][] = [
-  ["conducta","Conducta","Actitud"],
-  ["compromiso","Compromiso","Actitud"],
-  ["respeto","Respeto","Actitud"],
-  ["companerismo","Compañerismo","Actitud"],
-  ["control_balon","Control de balón","Técnica"],
-  ["pase","Pase","Técnica"],
-  ["recepcion","Recepción","Técnica"],
-  ["definicion","Definición","Técnica"],
-  ["comprension_tactica","Comprensión táctica","Táctica"],
-  ["velocidad","Velocidad","Físico"],
-  ["coordinacion","Coordinación","Físico"],
-]
 
 const posAbrev = (pos: string | null) => {
   if (!pos) return "—";
@@ -55,12 +40,15 @@ const posAbrev = (pos: string | null) => {
 export default function JugadorDetailClient({
   jugador: initial,
   stats,
+  charlas: charlasInitial,
 }: {
   jugador: JugadorEditable
   stats: Stats
+  charlas: CharlaRow[]
 }) {
   const [jugador, setJugador] = useState(initial)
-  const [tab, setTab]         = useState<"info" | "stats" | "evolucion">("info")
+  const [charlas, setCharlas] = useState<CharlaRow[]>(charlasInitial)
+  const [tab, setTab]         = useState<"info" | "stats" | "charlas">("info")
   const [editing, setEditing] = useState(false)
   const [form, setForm]       = useState<JugadorEditable>(initial)
   const [saving, setSaving]   = useState(false)
@@ -294,7 +282,7 @@ export default function JugadorDetailClient({
 
         {/* Tabs */}
         <div style={{ display: "flex", borderTop: "1px solid var(--border)", marginTop: 16 }}>
-          {(["info", "stats", "evolucion"] as const).map((t) => (
+          {(["info", "stats", "charlas"] as const).map((t) => (
             <button
               key={t}
               onClick={() => { setTab(t); if (editing) cancelEdit(); }}
@@ -308,7 +296,7 @@ export default function JugadorDetailClient({
                 cursor: "pointer", transition: "all 0.15s ease",
               }}
             >
-              {t === "info" ? "Información" : t === "stats" ? "Estadísticas" : "Evolución"}
+              {t === "info" ? "Información" : t === "stats" ? "Estadísticas" : `Charlas${charlas.length > 0 ? ` (${charlas.length})` : ""}`}
             </button>
           ))}
         </div>
@@ -448,62 +436,9 @@ export default function JugadorDetailClient({
         </div>
       )}
 
-      {/* ── Tab: Evolución ─────────────────────────────────────────────────── */}
-      {tab === "evolucion" && (
-        <div className="space-y-4">
-          {stats.ultimaEval ? (
-            <>
-              <p style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "right" }}>
-                Última evaluación: {fmtFecha(stats.ultimaEvalFecha)}
-              </p>
-
-              {[
-                { grupo: "Actitud",  keys: ["conducta","compromiso","respeto","companerismo"] },
-                { grupo: "Técnica",  keys: ["control_balon","pase","recepcion","definicion"] },
-                { grupo: "Táctica/Físico", keys: ["comprension_tactica","velocidad","coordinacion"] },
-              ].map(({ grupo, keys }) => (
-                <DarkSection key={grupo} title={grupo}>
-                  {EVAL_LABELS.filter(([k]) => keys.includes(k)).map(([key, label]) => {
-                    const val = (stats.ultimaEval as Record<string, number>)[key] ?? 0;
-                    const pct = (val / 5) * 100;
-                    const color = val >= 4 ? "#10B981" : val >= 3 ? "#0EA5E9" : "#F59E0B";
-                    return (
-                      <div key={key} style={{ marginBottom: 10 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                          <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{label}</span>
-                          <span style={{ fontSize: 12, fontWeight: 800, color }}>{val}/5</span>
-                        </div>
-                        <div style={{ height: 5, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
-                          <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 3 }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </DarkSection>
-              ))}
-
-              <Link href={`/evolucion/${j.id}`} style={{
-                display: "block", textAlign: "center", padding: "10px",
-                fontSize: 12, color: "#0EA5E9", fontWeight: 700, textDecoration: "none",
-              }}>
-                Ver historial de evolución →
-              </Link>
-            </>
-          ) : (
-            <div style={{
-              background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12,
-              padding: "32px 16px", textAlign: "center",
-            }}>
-              <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Sin evaluaciones registradas</p>
-              <Link href={`/evolucion/${j.id}`} style={{
-                display: "inline-block", marginTop: 12, fontSize: 12,
-                color: "#0EA5E9", fontWeight: 700, textDecoration: "none",
-              }}>
-                Agregar evaluación →
-              </Link>
-            </div>
-          )}
-        </div>
+      {/* ── Tab: Charlas ───────────────────────────────────────────────────── */}
+      {tab === "charlas" && (
+        <CharlasTab jugadorId={j.id} charlas={charlas} onChange={setCharlas} />
       )}
     </div>
   );
