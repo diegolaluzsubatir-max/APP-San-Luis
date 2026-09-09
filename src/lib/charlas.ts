@@ -1,16 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
-export const ETIQUETAS = ["Motivación", "Conducta", "Técnica", "Familia", "Otro"] as const;
-export type Etiqueta = (typeof ETIQUETAS)[number];
-
-export type CharlaRow = {
-  id: number;
-  jugadorId: number;
-  fecha: string;
-  etiqueta: string | null;
-  temas: string[];
-  creado_en: string;
-};
+import { ETIQUETAS, type CharlaRow } from "./charlas-types";
+export { ETIQUETAS, type CharlaRow, type Etiqueta } from "./charlas-types";
 
 type RawCharla = { id: number; jugadorId: number; fecha: Date; etiqueta: string | null; temas: string; creado_en: Date };
 
